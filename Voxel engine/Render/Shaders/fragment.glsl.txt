@@ -1,0 +1,9 @@
+#version 330 core
+out vec4 result;                                                                                     
+in vec2 tex;   
+in byte id;                          
+uniform sampler2D uTexture;                                             
+void main()                                                
+{                           
+	result = texture(uTexture, tex);                                                        
+} 
