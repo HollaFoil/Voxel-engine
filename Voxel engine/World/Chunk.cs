@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace Voxel_engine.World
 {
-    internal class Chunk
+    public class Chunk
     {
-        public const byte BACK = 1, LEFT = 2, FRONT = 4, RIGHT = 8, BOTTOM = 16, TOP = 32;
+        private const byte BACK = 1, LEFT = 2, FRONT = 4, RIGHT = 8, BOTTOM = 16, TOP = 32;
         public byte[,,] blockType = new byte[16, 256, 16];
         public byte[,,] exposedFaces = new byte[16, 256, 16];
         public int x, y;
+        public int bufferID = -1;
         public Chunk(int x, int y)
         {
             this.x = x;
@@ -22,6 +23,10 @@ namespace Voxel_engine.World
             this.blockType = blockType;
             this.x = x;
             this.y = y;
+        }
+        public void SetBufferId(int id)
+        {
+            bufferID = id;
         }
         public void UpdateExposedFaces(Chunk right, Chunk left, Chunk down, Chunk up)
         {

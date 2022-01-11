@@ -15,21 +15,22 @@ namespace Voxel_engine.Render
     public class Renderer
     {
         Random rand = new();
-        int[] bufferSizes;
-        int renderDistance;
+        List<int> bufferSizes;
         uint texMap;
-        uint[] vbo, vao;
-        Chunk[,] chunks;
+        List<uint> vbochunks, vaochunks;
+        List<bool> bufferAvailability;
         ProgramShaders program;
-        public Renderer(int distance)
+        public Renderer(List<Chunk> chunks)
         {
-            chunks = new Chunk[distance,distance];
-            renderDistance = distance;
             program = new ProgramShaders();
-            CreateTextureMap(out texMap);
+            bufferSizes = new List<int>();
+            vbochunks = new List<uint>();
+            vaochunks = new List<uint>();
+            bufferAvailability = new List<bool>();
 
-            CreateBuffers();
-            PopulateChunks();
+            AssignBuffers(chunks);
+
+            CreateTextureMap(out texMap);
             
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
@@ -45,6 +46,47 @@ namespace Voxel_engine.Render
             RenderBuffers();
           
         }
+
+        public void UpdateChunkBuffers(List<Chunk> chunks)
+        {
+            UpdateChunkAvailability(chunks);
+            AssignBuffers(chunks);
+        }
+        private void AssignBuffers(List<Chunk> chunks) 
+        {
+            int freeBuffers = 0;
+            int index = 0;
+            for (int i = 0; i < bufferAvailability.Count; i++) if (bufferAvailability[i]) freeBuffers++;
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                if (chunks[i].bufferID != -1) continue;
+                if (freeBuffers == 0)
+                {
+                    CreateBuffer(out uint vao, out uint vbo);
+                    chunks[i].bufferID = (int)vao - 1;
+                    BufferChunk(chunks[i], vao);
+                }
+                for (int j = index; j < bufferAvailability.Count; j++)
+                {
+                    if (!bufferAvailability[j]) continue;
+                    index = j + 1;
+                    bufferAvailability[j] = false;
+                    chunks[i].bufferID = j;
+                    freeBuffers--;
+                    BufferChunk(chunks[i], (uint)j + 1);
+                }
+            }
+        }
+        private void UpdateChunkAvailability(List<Chunk> chunks)
+        {
+            for (int i = 0; i < bufferAvailability.Count; i++) bufferAvailability[i] = true;
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                if (chunks[i].bufferID == -1) continue;
+                bufferAvailability[chunks[i].bufferID] = false;
+            }
+        }
+
         public uint GetProgram()
         {
             return program.program;
@@ -52,34 +94,10 @@ namespace Voxel_engine.Render
         private unsafe void RenderBuffers()
         {
             glBindTexture(GL_TEXTURE_2D, texMap);
-            foreach (var buffer in vao)
+            foreach (var buffer in vaochunks)
             {
                 glBindVertexArray(buffer);
-                glDrawArrays(GL_TRIANGLES, 0, bufferSizes[buffer-1]/sizeOfVertex);
-            }
-        }
-        private void PopulateChunks()
-        {
-            for (int i = 0; i < renderDistance; i++)
-            {
-                for (int j = 0; j < renderDistance; j++)
-                {
-                    chunks[i, j] = ChunkGenerator.GenerateChunk(i- renderDistance / 2, j - renderDistance / 2);
-                }
-            }
-            for (int i = 0; i < renderDistance; i++)
-            {
-                for (int j = 0; j < renderDistance; j++)
-                {
-                    Chunk up = null, down = null, left = null, right = null;
-
-                    if (i < renderDistance - 1) left = chunks[i + 1, j];
-                    if (i > 0) right = chunks[i - 1, j];
-                    if (j > 0) up = chunks[i, j - 1];
-                    if (j < renderDistance - 1) down = chunks[i, j + 1];
-                    chunks[i, j].UpdateExposedFaces(right, left, down, up);
-                    BufferChunk(chunks[i, j], (uint)(i * renderDistance + j) + 1);
-                }
+                glDrawArrays(GL_TRIANGLES, 0, bufferSizes[(int)buffer-1]/sizeOfVertex);
             }
         }
         private unsafe void BufferChunk(Chunk chunk, uint buffer)
@@ -87,16 +105,16 @@ namespace Voxel_engine.Render
             glBindVertexArray(buffer);
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
             byte[] data = ChunkMesh.GenerateMesh(chunk.blockType, chunk.exposedFaces, chunk.x, chunk.y);
-            if (bufferSizes[buffer-1] < data.Length)
+            if (bufferSizes[(int)buffer -1] < data.Length)
             {
                 fixed (void* ptr = &data[0]) {
                     glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
                 }
-                bufferSizes[buffer - 1] = data.Length;
+                bufferSizes[(int)buffer - 1] = data.Length;
             }
             else
             {
-                glClearBufferfi(GL_ARRAY_BUFFER, 0, bufferSizes[buffer - 1], 0);
+                glClearBufferfi(GL_ARRAY_BUFFER, 0, bufferSizes[(int)buffer - 1], 0);
                 fixed (void* ptr = &data[0])
                 {
                     glBufferSubData(GL_ARRAY_BUFFER, 0, data.Length, ptr);
@@ -104,24 +122,24 @@ namespace Voxel_engine.Render
             }
             glBindVertexArray(0);
         }
-        private unsafe void CreateBuffers()
+        private unsafe void CreateBuffer(out uint vao, out uint vbo)
         {
-            vao = glGenVertexArrays(renderDistance * renderDistance);
-            vbo = glGenBuffers(renderDistance * renderDistance);
-            bufferSizes = new int[renderDistance * renderDistance];
-            for (int i = 0; i < renderDistance * renderDistance; i++)
-            {
-                glBindVertexArray(vao[i]);
-                glBindBuffer(GL_ARRAY_BUFFER, vbo[i]);
-                glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeOfVertex, NULL);
-                glEnableVertexAttribArray(0);
-                glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeOfVertex, (void*)(3 * sizeof(float)));
-                glEnableVertexAttribArray(1);
-                glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(5 * sizeof(float)));
-                glEnableVertexAttribArray(2);
-            }
+            vao = glGenVertexArray();
+            vbo = glGenBuffer();
+            vaochunks.Add(vao);
+            vbochunks.Add(vbo);
+            bufferAvailability.Add(false);
+            bufferSizes.Add(-1);
 
-            Console.WriteLine(5 * sizeof(float) + sizeof(byte));
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeOfVertex, NULL);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeOfVertex, (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+            glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(5 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+            //Console.WriteLine(5 * sizeof(float) + sizeof(byte));
             /*glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float) + sizeof(byte), NULL);
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float) + sizeof(byte), (void*)(3 * sizeof(float)));

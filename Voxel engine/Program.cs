@@ -4,6 +4,7 @@ using GLFW;
 using GlmSharp;
 using Voxel_engine;
 using Voxel_engine.Render;
+using Voxel_engine.World;
 using static OpenGL.GL;
 
 class Program
@@ -32,7 +33,11 @@ class Program
     {
         PrepareContext();
         var window = CreateWindow(screenWidth, screenHeight);
-        Renderer renderer = new(32);
+
+
+
+        World world = new World(4);
+        Renderer renderer = new(world.loadedChunks);
         rand = new Random();
 
         InputHandler inputHandler = new(window);
@@ -65,6 +70,10 @@ class Program
             if (sw.ElapsedMilliseconds < 1000/fps) continue;
             camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (1000/fps)/(float)sw.ElapsedMilliseconds, inputHandler.GetSpeed());
             sw.Restart();
+
+
+            world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x/16.0f), (int)Math.Floor(camera.position.z / 16.0f));
+            renderer.UpdateChunkBuffers(world.loadedChunks);
 
             Console.WriteLine(camera.position);
             Console.WriteLine(camera.yawpitch);
