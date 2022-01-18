@@ -12,11 +12,11 @@ namespace Voxel_engine
         {
 
             int faces = 0;
-            for (int x = 0; x < 16; x++)
+            for (int x = 0; x < 32; x++)
             {
                 for (int y = 0; y < 256; y++)
                 {
-                    for (int z = 0; z < 16; z++)
+                    for (int z = 0; z < 32; z++)
                     {
                         if (block[x, y, z] == 0 || exposedFaces[x,y,z] == 0) continue;
                         if ((exposedFaces[x, y, z] & BlockMesh.FRONT) > 0) faces++;
@@ -30,14 +30,14 @@ namespace Voxel_engine
             }
             byte[] mesh = new byte[faces * BlockMesh.sizeOfFace];
             int index = 0;
-            for (int x = 0; x < 16; x++)
+            for (int x = 0; x < 32; x++)
             {
                 for (int y = 0; y < 256; y++)
                 {
-                    for (int z = 0; z < 16; z++)
+                    for (int z = 0; z < 32; z++)
                     {
                         if (block[x, y, z] == 0) continue;
-                        byte[] data = BlockMesh.GetVertices(exposedFaces[x,y,z], block[x,y,z], chunkx*16 + x, y, chunky*16 + z);
+                        byte[] data = BlockMesh.GetVertices(exposedFaces[x,y,z], block[x,y,z], chunkx*32 + x, y, chunky*32 + z);
                         Buffer.BlockCopy(data, 0, mesh, index, data.Length);
                         index += data.Length;
                     }

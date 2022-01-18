@@ -35,8 +35,8 @@ class Program
         var window = CreateWindow(screenWidth, screenHeight);
 
 
-
-        World world = new World(4);
+        Noise2d.Reseed();
+        World world = new World(8);
         Renderer renderer = new(world.loadedChunks);
         rand = new Random();
 
@@ -45,7 +45,7 @@ class Program
         int viewLoc = glGetUniformLocation(renderer.GetProgram(), "view");
 
 
-        Noise2d.Reseed();
+        
         mat4 projection;
         projection = mat4.Perspective(glm.Radians(90.0f), screenWidth / (float)screenHeight, 0.1f, 300.0f);
         float[] p = projection.ToArray();
@@ -68,11 +68,12 @@ class Program
             camera.UpdateYawPitch(inputHandler.UpdateMouse());
             Glfw.PollEvents();
             if (sw.ElapsedMilliseconds < 1000/fps) continue;
-            camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (1000/fps)/(float)sw.ElapsedMilliseconds, inputHandler.GetSpeed());
+            camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (float)sw.ElapsedMilliseconds/ (1000 / fps), inputHandler.GetSpeed());
             sw.Restart();
 
 
-            world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x/16.0f), (int)Math.Floor(camera.position.z / 16.0f));
+            world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x/32.0f), (int)Math.Floor(camera.position.z / 32.0f));
+            world.UpdateChunkFaces();
             renderer.UpdateChunkBuffers(world.loadedChunks);
 
             Console.WriteLine(camera.position);

@@ -44,7 +44,7 @@ namespace Voxel_engine.Render
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             RenderBuffers();
-          
+            
         }
 
         public void UpdateChunkBuffers(List<Chunk> chunks)
@@ -63,18 +63,25 @@ namespace Voxel_engine.Render
                 if (freeBuffers == 0)
                 {
                     CreateBuffer(out uint vao, out uint vbo);
-                    chunks[i].bufferID = (int)vao - 1;
+                    chunks[i].bufferID = (int)vao;
                     BufferChunk(chunks[i], vao);
+                    continue;
                 }
                 for (int j = index; j < bufferAvailability.Count; j++)
                 {
                     if (!bufferAvailability[j]) continue;
                     index = j + 1;
                     bufferAvailability[j] = false;
-                    chunks[i].bufferID = j;
+                    chunks[i].bufferID = j + 1;
                     freeBuffers--;
                     BufferChunk(chunks[i], (uint)j + 1);
+                    break;
                 }
+            }
+            foreach (var c in chunks)
+            {
+                if (c.bufferedMesh) continue;
+                BufferChunk(c, (uint)c.bufferID);
             }
         }
         private void UpdateChunkAvailability(List<Chunk> chunks)
@@ -83,7 +90,7 @@ namespace Voxel_engine.Render
             for (int i = 0; i < chunks.Count; i++)
             {
                 if (chunks[i].bufferID == -1) continue;
-                bufferAvailability[chunks[i].bufferID] = false;
+                bufferAvailability[chunks[i].bufferID-1] = false;
             }
         }
 
@@ -96,31 +103,20 @@ namespace Voxel_engine.Render
             glBindTexture(GL_TEXTURE_2D, texMap);
             foreach (var buffer in vaochunks)
             {
+                if (bufferAvailability[(int)buffer - 1]) continue;
                 glBindVertexArray(buffer);
                 glDrawArrays(GL_TRIANGLES, 0, bufferSizes[(int)buffer-1]/sizeOfVertex);
             }
         }
         private unsafe void BufferChunk(Chunk chunk, uint buffer)
         {
-            glBindVertexArray(buffer);
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
             byte[] data = ChunkMesh.GenerateMesh(chunk.blockType, chunk.exposedFaces, chunk.x, chunk.y);
-            if (bufferSizes[(int)buffer -1] < data.Length)
-            {
-                fixed (void* ptr = &data[0]) {
-                    glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
-                }
-                bufferSizes[(int)buffer - 1] = data.Length;
+            fixed (void* ptr = &data[0]) {
+                glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
             }
-            else
-            {
-                glClearBufferfi(GL_ARRAY_BUFFER, 0, bufferSizes[(int)buffer - 1], 0);
-                fixed (void* ptr = &data[0])
-                {
-                    glBufferSubData(GL_ARRAY_BUFFER, 0, data.Length, ptr);
-                }
-            }
-            glBindVertexArray(0);
+            chunk.bufferedMesh = true;
+            bufferSizes[(int)buffer - 1] = data.Length;
         }
         private unsafe void CreateBuffer(out uint vao, out uint vbo)
         {

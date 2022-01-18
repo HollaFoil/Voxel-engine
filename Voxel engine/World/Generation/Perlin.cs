@@ -108,7 +108,7 @@ namespace Voxel_engine
 
         public static float[] GenerateChunkNoiseMap(int chunkX, int chunkY, int octaves)
         {
-            int width = 16, height = 16;
+            int width = 32, height = 32;
             var data = new float[width * height];
 
             /// track min and max noise value. Used to normalize the result to the 0 to 1.0 range.
@@ -131,7 +131,7 @@ namespace Voxel_engine
                     {
                         var i = offset % width;
                         var j = offset / width;
-                        var noise = Noise2d.Noise((i + 16 * chunkY) * freq * 1f / width, (j+16 * chunkX) * freq * 1f / height);
+                        var noise = Noise2d.Noise((i + 32 * chunkY) * freq * 1f / width, (j+32 * chunkX) * freq * 1f / height);
                         noise = data[j * width + i] += noise * amp;
 
                         min = Math.Min(min, noise);

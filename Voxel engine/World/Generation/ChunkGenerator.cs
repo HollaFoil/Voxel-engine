@@ -12,12 +12,12 @@ namespace Voxel_engine.World.Generation
         public static Chunk GenerateChunk(int chunkx, int chunky)
         {
             var data = Noise2d.GenerateChunkNoiseMap(chunkx, chunky, octaves);
-            byte[,,] blockTypes = new byte[16, 256, 16];
-            for (int x = 0; x < 16; x++)
+            byte[,,] blockTypes = new byte[32, 256, 32];
+            for (int x = 0; x < 32; x++)
             {
-                for (int z = 0; z < 16; z++)
+                for (int z = 0; z < 32; z++)
                 {
-                    int height = (int)Math.Ceiling((1.0f +data[x*16 + z])/2 * 255);
+                    int height = (int)Math.Ceiling((1.0f +data[x*32 + z])/2 * 255);
                     blockTypes[x, height, z] = 4;
                     blockTypes[x, height-1, z] = 2;
                     blockTypes[x, height-2, z] = 2;
