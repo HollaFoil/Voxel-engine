@@ -59,7 +59,7 @@ namespace Voxel_engine.Render
             for (int i = 0; i < bufferAvailability.Count; i++) if (bufferAvailability[i]) freeBuffers++;
             for (int i = 0; i < chunks.Count; i++)
             {
-                if (chunks[i].bufferID != -1) continue;
+                if (chunks[i].bufferID != -1 || !chunks[i].updatedMesh) continue;
                 if (freeBuffers == 0)
                 {
                     CreateBuffer(out uint vao, out uint vbo);
@@ -80,7 +80,7 @@ namespace Voxel_engine.Render
             }
             foreach (var c in chunks)
             {
-                if (c.bufferedMesh) continue;
+                if (c.bufferedMesh || !c.updatedMesh) continue;
                 BufferChunk(c, (uint)c.bufferID);
             }
         }

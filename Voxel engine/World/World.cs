@@ -29,18 +29,21 @@ namespace Voxel_engine.World
 
         private void UpdateChunkFaces()
         {
+            Console.WriteLine();
             Parallel.For(0, loadedChunks.Count, (offset) =>
             {
                 Chunk chunk = loadedChunks[offset];
                 if (chunk.updatedMesh) return;
-                Chunk left = loadedChunks.Find(c => (c.x - 1 == chunk.x) && (c.y == chunk.y));
-                Chunk right = loadedChunks.Find(c => (c.x + 1 == chunk.x) && (c.y == chunk.y));
-                Chunk up = loadedChunks.Find(c => (c.x == chunk.x) && (c.y - 1 == chunk.y));
-                Chunk down = loadedChunks.Find(c => (c.x == chunk.x) && (c.y + 1 == chunk.y));
+                Chunk left = loadedChunks.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
+                Chunk right = loadedChunks.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
+                Chunk up = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
+                Chunk down = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
 
                 lock (chunk)
                 {
+                    if (left == null | right == null || up == null || down == null) Console.WriteLine(new vec2(chunk.x, chunk.y));
                     chunk.UpdateExposedFaces(right, left, up, down);
+                    chunk.GenerateMesh();
                     chunk.updatedMesh = true;
                 }
             });
@@ -57,16 +60,6 @@ namespace Voxel_engine.World
                 chunk.updatedMesh = true;
             }*/
         }
-        private void GenerateChunkMeshes()
-        {
-            Parallel.For(0, loadedChunks.Count, (offset) =>
-            {
-                lock (loadedChunks[offset])
-                {
-                    loadedChunks[offset].GenerateMesh();
-                }
-            });
-        }
         public void LoadAndUnloadChunks(int centerx, int centery)
         {
             for (int i = 0; i < loadedChunks.Count; i++)
@@ -74,10 +67,10 @@ namespace Voxel_engine.World
                 if (!IsWithinDistance(centerx, centery, loadedChunks[i].x, loadedChunks[i].y))
                 {
                     Chunk chunk = loadedChunks[i];
-                    Chunk left = loadedChunks.Find(c => (c.x - 1 == chunk.x) && (c.y == chunk.y));
-                    Chunk right = loadedChunks.Find(c => (c.x + 1 == chunk.x) && (c.y == chunk.y));
-                    Chunk up = loadedChunks.Find(c => (c.x == chunk.x) && (c.y - 1 == chunk.y));
-                    Chunk down = loadedChunks.Find(c => (c.x == chunk.x) && (c.y + 1 == chunk.y));
+                    Chunk left = loadedChunks.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
+                    Chunk right = loadedChunks.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
+                    Chunk up = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
+                    Chunk down = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
                     if (left != null) left.SetNotUpdated();
                     if (right != null) right.SetNotUpdated();
                     if (up != null) up.SetNotUpdated();
@@ -97,16 +90,18 @@ namespace Voxel_engine.World
                     lock (loadedChunks)
                     {
                         loadedChunks.Add(ChunkGenerator.GenerateChunk(centerx + i - renderDistance, centery + j - renderDistance));
+
+                        Chunk chunk = loadedChunks[loadedChunks.Count - 1];
+                        chunk.SetNotUpdated();
+                        Chunk left = loadedChunks.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
+                        Chunk right = loadedChunks.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
+                        Chunk up = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
+                        Chunk down = loadedChunks.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
+                        if (left != null) left.SetNotUpdated();
+                        if (right != null) right.SetNotUpdated();
+                        if (up != null) up.SetNotUpdated();
+                        if (down != null) down.SetNotUpdated();
                     }
-                    Chunk chunk = loadedChunks[loadedChunks.Count - 1];
-                    Chunk left = loadedChunks.Find(c => (c.x - 1 == chunk.x) && (c.y == chunk.y));
-                    Chunk right = loadedChunks.Find(c => (c.x + 1 == chunk.x) && (c.y == chunk.y));
-                    Chunk up = loadedChunks.Find(c => (c.x == chunk.x) && (c.y - 1 == chunk.y));
-                    Chunk down = loadedChunks.Find(c => (c.x == chunk.x) && (c.y + 1 == chunk.y));
-                    if (left != null) left.SetNotUpdated();
-                    if (right != null) right.SetNotUpdated();
-                    if (up != null) up.SetNotUpdated();
-                    if (down != null) down.SetNotUpdated();
                 }
             }
             //UpdateChunkFaces();
@@ -123,7 +118,7 @@ namespace Voxel_engine.World
         {
             int distx = Math.Abs(centerx - chunkx);
             int disty = Math.Abs(centery - chunky);
-            return (distx*distx + disty*disty) < renderDistance*renderDistance;
+            return (distx*distx + disty*disty) <= renderDistance*renderDistance;
         }
 
         private static void RunThread(object? obj)
@@ -144,7 +139,6 @@ namespace Voxel_engine.World
                 world.LoadAndUnloadChunks(x, y);
                 //Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAA");
                 world.UpdateChunkFaces();
-                world.GenerateChunkMeshes();
                 Thread.Sleep(1000 / 20);
             }
 
