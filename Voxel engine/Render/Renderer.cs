@@ -11,19 +11,20 @@ using static OpenGL.GL;
 
 namespace Voxel_engine.Render
 {
- 
+
     public class Renderer
     {
-        Random rand = new();
-        List<int> bufferSizes;
+        List<int> bufferMaxSizes, bufferedDataSize;
         uint texMap;
         List<uint> vbochunks, vaochunks;
         List<bool> bufferAvailability;
+
         ProgramShaders program;
         public Renderer(List<Chunk> chunks)
         {
             program = new ProgramShaders();
-            bufferSizes = new List<int>();
+            bufferMaxSizes = new List<int>();
+            bufferedDataSize = new List<int>();
             vbochunks = new List<uint>();
             vaochunks = new List<uint>();
             bufferAvailability = new List<bool>();
@@ -31,20 +32,19 @@ namespace Voxel_engine.Render
             AssignBuffers(chunks);
 
             CreateTextureMap(out texMap);
-            
+
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LESS);
             glClearColor(0.5f, 0.95f, 1.0f, 1.0f);
 
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
-            Console.WriteLine(bufferSizes[0]);
         }
         public void Flush()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             RenderBuffers();
-            
+
         }
 
         public void UpdateChunkBuffers(List<Chunk> chunks)
@@ -52,7 +52,7 @@ namespace Voxel_engine.Render
             UpdateChunkAvailability(chunks);
             AssignBuffers(chunks);
         }
-        private void AssignBuffers(List<Chunk> chunks) 
+        private void AssignBuffers(List<Chunk> chunks)
         {
             int freeBuffers = 0;
             int index = 0;
@@ -64,7 +64,7 @@ namespace Voxel_engine.Render
                 {
                     CreateBuffer(out uint vao, out uint vbo);
                     chunks[i].bufferID = (int)vao;
-                    BufferChunk(chunks[i], vao);
+                    BufferChunk(chunks[i], (uint)chunks[i].bufferID);
                     continue;
                 }
                 for (int j = index; j < bufferAvailability.Count; j++)
@@ -74,7 +74,7 @@ namespace Voxel_engine.Render
                     bufferAvailability[j] = false;
                     chunks[i].bufferID = j + 1;
                     freeBuffers--;
-                    BufferChunk(chunks[i], (uint)j + 1);
+                    BufferChunk(chunks[i], (uint)chunks[i].bufferID);
                     break;
                 }
             }
@@ -90,7 +90,7 @@ namespace Voxel_engine.Render
             for (int i = 0; i < chunks.Count; i++)
             {
                 if (chunks[i].bufferID == -1) continue;
-                bufferAvailability[chunks[i].bufferID-1] = false;
+                bufferAvailability[chunks[i].bufferID - 1] = false;
             }
         }
 
@@ -105,18 +105,30 @@ namespace Voxel_engine.Render
             {
                 if (bufferAvailability[(int)buffer - 1]) continue;
                 glBindVertexArray(buffer);
-                glDrawArrays(GL_TRIANGLES, 0, bufferSizes[(int)buffer-1]/sizeOfVertex);
+                glDrawArrays(GL_TRIANGLES, 0, bufferedDataSize[(int)buffer - 1] / sizeOfVertex);
             }
         }
         private unsafe void BufferChunk(Chunk chunk, uint buffer)
         {
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
-            byte[] data = ChunkMesh.GenerateMesh(chunk.blockType, chunk.exposedFaces, chunk.x, chunk.y);
-            fixed (void* ptr = &data[0]) {
+            byte[] data = chunk.data;
+            if (data == null || data.Length == 0 || chunk.bufferID == -1) return;
+            if (data.Length < bufferMaxSizes[(int)buffer - 1])
+            {
+                fixed (void* ptr = &data[0])
+                {
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, data.Length, ptr);
+                }
+                chunk.bufferedMesh = true;
+                bufferedDataSize[(int)buffer - 1] = data.Length;
+                return;
+            }
+            fixed (void* ptr = &data[0])
+            {
                 glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
             }
             chunk.bufferedMesh = true;
-            bufferSizes[(int)buffer - 1] = data.Length;
+            bufferMaxSizes[(int)buffer - 1] = bufferedDataSize[(int)buffer - 1] = data.Length;
         }
         private unsafe void CreateBuffer(out uint vao, out uint vbo)
         {
@@ -125,16 +137,25 @@ namespace Voxel_engine.Render
             vaochunks.Add(vao);
             vbochunks.Add(vbo);
             bufferAvailability.Add(false);
-            bufferSizes.Add(-1);
+            bufferMaxSizes.Add(-1);
+            bufferedDataSize.Add(0);
 
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeOfVertex, NULL);
+            glVertexAttribIPointer(0, 1, GL_UNSIGNED_BYTE, sizeOfVertex, NULL);
             glEnableVertexAttribArray(0);
-            glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeOfVertex, (void*)(3 * sizeof(float)));
+            glVertexAttribIPointer(1, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(sizeof(byte)));
             glEnableVertexAttribArray(1);
-            glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(5 * sizeof(float)));
+            glVertexAttribIPointer(2, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(2 * sizeof(byte)));
             glEnableVertexAttribArray(2);
+            glVertexAttribIPointer(3, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(3 * sizeof(byte)));
+            glEnableVertexAttribArray(3);
+            glVertexAttribIPointer(4, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(4 * sizeof(byte)));
+            glEnableVertexAttribArray(4);
+            glVertexAttribIPointer(5, 1, GL_INT, sizeOfVertex, (void*)(5 * sizeof(byte)));
+            glEnableVertexAttribArray(5);
+            glVertexAttribIPointer(6, 1, GL_INT, sizeOfVertex, (void*)(5 * sizeof(byte) + sizeof(int)));
+            glEnableVertexAttribArray(6);
             //Console.WriteLine(5 * sizeof(float) + sizeof(byte));
             /*glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float) + sizeof(byte), NULL);
             glEnableVertexAttribArray(0);
@@ -159,6 +180,6 @@ namespace Voxel_engine.Render
             glGenerateMipmap(GL_TEXTURE_2D);
         }
 
-        public const int sizeOfVertex = 5 * sizeof(float) + sizeof(byte);
+        public const int sizeOfVertex = 2 * sizeof(int) + 5 * sizeof(byte);
     }
 }

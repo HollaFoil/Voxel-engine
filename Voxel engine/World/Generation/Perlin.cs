@@ -15,17 +15,29 @@ namespace Voxel_engine
 
         private static Vector2[] _gradients;
 
-        static float frequency = 0.25f;
+        static float frequency = 0.10f;
         static float amplitude = 0.4f;
-        static float persistence = 0.2f;
+        static float persistence = 0.5f;
         static Noise2d()
         {
             CalculatePermutation(out _permutation);
             CalculateGradients(out _gradients);
         }
+        public static void SetSettings(float freq, float amp, float pers)
+        {
+            frequency = freq;
+            amplitude = amp;
+            persistence = pers;
+        }
+        public static void ResetSettings()
+        {
+            frequency = 0.10f;
+            amplitude = 0.4f;
+            persistence = 0.4f;
+        }
         public static void SetSeed(int seed)
         {
-            _random = new(seed);
+            _random = new Random(seed);
         }
         private static void CalculatePermutation(out int[] p)
         {
@@ -108,7 +120,8 @@ namespace Voxel_engine
 
         public static float[] GenerateChunkNoiseMap(int chunkX, int chunkY, int octaves)
         {
-            int width = 32, height = 32;
+            ResetSettings();
+            int width = 16, height = 16;
             var data = new float[width * height];
 
             /// track min and max noise value. Used to normalize the result to the 0 to 1.0 range.
@@ -128,21 +141,23 @@ namespace Voxel_engine
             {
                 /// parallel loop - easy and fast.
                 Parallel.For(0, width * height, (offset) =>
-                    {
-                        var i = offset % width;
-                        var j = offset / width;
-                        var noise = Noise2d.Noise((i + 32 * chunkY) * freq * 1f / width, (j+32 * chunkX) * freq * 1f / height);
-                        noise = data[j * width + i] += noise * amp;
+                {
+                    var i = offset % width;
+                    var j = offset / width;
+                    var noise = Noise2d.Noise((i + 16 * chunkY) * freq * 1f / width, (j + 16 * chunkX) * freq * 1f / height);
+                    noise = data[j * width + i] += noise * amp;
 
-                        min = Math.Min(min, noise);
-                        max = Math.Max(max, noise);
+                    min = Math.Min(min, noise);
+                    max = Math.Max(max, noise);
 
-                    }
+                }
                 );
 
                 freq *= 2;
                 amp *= pers;
+                SetSettings(freq, amp, pers);
             }
+            ResetSettings();
             return data;
         }
     }

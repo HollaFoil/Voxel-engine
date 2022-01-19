@@ -18,72 +18,75 @@ class Program
     static int screenWidth = 1280, screenHeight = 720;
     static uint vao, vbo, ebo;
     static uint[] texIds;
+    static Renderer renderer;
     static void outputnoise(int x, int y, float[] map)
     {
         for (int i = 0; i < x; i++)
         {
             for (int j = 0; j < y; j++)
             {
-                Console.Write("{0, -4:f} ", map[i*y + j]);
+                Console.Write("{0, -4:f} ", map[i * y + j]);
             }
             Console.WriteLine();
         }
     }
     static unsafe void Main(string[] args)
     {
+        SizeCallback resizeCallback = WindowSizeCallback;
         PrepareContext();
         var window = CreateWindow(screenWidth, screenHeight);
-
+        
 
         Noise2d.Reseed();
-        World world = new World(8);
-        Renderer renderer = new(world.loadedChunks);
+        World world = new World(40);
+        renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
-        InputHandler inputHandler = new(window);
-        Camera camera = new();
+        InputHandler inputHandler = new InputHandler(window);
+        Camera camera = new Camera();
         int viewLoc = glGetUniformLocation(renderer.GetProgram(), "view");
 
-
         
+
         mat4 projection;
-        projection = mat4.Perspective(glm.Radians(90.0f), screenWidth / (float)screenHeight, 0.1f, 300.0f);
+        projection = mat4.Perspective(glm.Radians(90.0f), screenWidth / (float)screenHeight, 0.1f, 600.0f);
         float[] p = projection.ToArray();
         int projectionLoc = glGetUniformLocation(renderer.GetProgram(), "projection");
         glUniformMatrix4fv(projectionLoc, 1, false, p);
+
+
+
+
         
-        
-        Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Hidden);
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        
+
         sw.Start();
 
 
 
-        
-
+        Glfw.SetWindowSizeCallback(window, resizeCallback);
         sw.Start();
         while (!Glfw.WindowShouldClose(window))
         {
             camera.UpdateYawPitch(inputHandler.UpdateMouse());
             Glfw.PollEvents();
-            if (sw.ElapsedMilliseconds < 1000/fps) continue;
-            camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (float)sw.ElapsedMilliseconds/ (1000 / fps), inputHandler.GetSpeed());
+            if (sw.ElapsedMilliseconds < 1000 / fps) continue;
+            camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (1000 / fps) / (float)sw.ElapsedMilliseconds, inputHandler.GetSpeed());
+            world.UpdatePosition(camera.position);
+            glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.getDirection(), new vec3(0, 1, 0))).ToArray());
             sw.Restart();
 
+            //world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x / 16.0f), (int)Math.Floor(camera.position.z / 16.0f));
+            lock (world.loadedChunks)
+            {
+                renderer.UpdateChunkBuffers(world.loadedChunks);
+            }
 
-            world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x/32.0f), (int)Math.Floor(camera.position.z / 32.0f));
-            world.UpdateChunkFaces();
-            renderer.UpdateChunkBuffers(world.loadedChunks);
-
-            Console.WriteLine(camera.position);
-            Console.WriteLine(camera.yawpitch);
-
-            glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.getDirection(), new vec3(0, 1, 0))).ToArray());
             renderer.Flush();
 
             Glfw.SwapBuffers(window);
+
             PollErrors();
+            
         }
 
         Glfw.Terminate();
@@ -103,7 +106,16 @@ class Program
         Glfw.WindowHint(Hint.Decorated, true);
         Glfw.WindowHint(Hint.OpenglDebugContext, true);
     }
-
+    private static void WindowSizeCallback(GLFW.Window window, int width, int height)
+    {
+        if (width == 0 || height == 0) return;
+        glViewport(0, 0, width, height);
+        mat4 projection;
+        projection = mat4.Perspective(glm.Radians(90.0f), width / (float)height, 0.1f, 600.0f);
+        float[] p = projection.ToArray();
+        int projectionLoc = glGetUniformLocation(renderer.GetProgram(), "projection");
+        glUniformMatrix4fv(projectionLoc, 1, false, p);
+    }
     private static Window CreateWindow(int width, int height)
     {
         var window = Glfw.CreateWindow(width, height, TITLE, GLFW.Monitor.None, Window.None);
@@ -116,9 +128,41 @@ class Program
         Import(Glfw.GetProcAddress);
         glViewport(0, 0, width, height);
 
+        Glfw.SetInputMode(window, InputMode.Cursor, (int)CursorMode.Hidden);
         return window;
     }
 
     private static Random rand;
-    
+    static float[] vertices = {
+        //Vertices according to faces + texture coordinates
+            0f, 0f, 1.0f,             0.0f, 1.0f,
+            1.0f, 0f, 1.0f,           1.0f, 1.0f,
+            0f, 1.0f, 1.0f,           0.0f, 0.0f,
+            1.0f, 1.0f, 1.0f,         1.0f, 0.0f,
+
+            1.0f, 0f, 1.0f,           0.0f, 1.0f,
+            1.0f, 0f, 0f,             1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,         0.0f, 0.0f,
+            1.0f, 1.0f, 0f,           1.0f, 0.0f,
+
+            1.0f, 0f, 0f,             0.0f, 1.0f,
+            0f, 0f, 0f,               1.0f, 1.0f,
+            1.0f, 1.0f, 0f,           0.0f, 0.0f,
+            0f, 1.0f, 0f,             1.0f, 0.0f,
+
+            0f, 0f, 0f,               0.0f, 1.0f,
+            0f, 0f, 1.0f,             1.0f, 1.0f,
+            0f, 1.0f, 0f,             0.0f, 0.0f,
+            0f, 1.0f, 1.0f,           1.0f, 0.0f,
+
+            0f, 0f, 0f,               0.0f, 1.0f,
+            1.0f, 0f, 0f,             1.0f, 1.0f,
+            0f, 0f, 1.0f,             0.0f, 0.0f,
+            1.0f, 0f, 1.0f,           1.0f, 0.0f,
+
+            0f, 1.0f, 1.0f,           0.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,         1.0f, 1.0f,
+            0f, 1.0f, 0f,             0.0f, 0.0f,
+            1.0f, 1.0f, 0f,           1.0f, 0.0f,
+        };
 }

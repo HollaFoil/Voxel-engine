@@ -5,7 +5,7 @@ namespace Voxel_engine
     internal class Camera
     {
         public float fov = 90.0f;
-        public vec3 position = new(0f, 0f, -3f);
+        public vec3 position = new(0f, 150f, -3f);
         public vec2 yawpitch = new(-90f, 0f);
         public float speed = 0.05f;
         public Camera()

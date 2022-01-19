@@ -47,13 +47,7 @@ namespace Voxel_engine
             var screen = Glfw.PrimaryMonitor.WorkArea;
             float centerx = ((windowx + width / 2) / (float)screen.Width);
             float centery = ((windowy + height / 2) / (float)screen.Height);
-            Console.WriteLine(new vec2(centerx, centery));
-            Console.WriteLine(new vec2((float)x, (float)y));
-
             facingChange += new vec2(centerx*width-(float)x, centery*height-(float)y)*sensitivity;
-            Console.WriteLine(facingChange);
-            Console.WriteLine();
-            //if 
             Glfw.SetCursorPosition(window, centerx*width, centery*height);
         }
         private void InitKeybinds()
