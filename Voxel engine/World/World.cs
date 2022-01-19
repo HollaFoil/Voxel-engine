@@ -13,15 +13,19 @@ namespace Voxel_engine.World
         public List<Chunk> loadedChunks = new List<Chunk>();
         int renderDistance = 10;
         public Position position = new Position();
-
+        Thread thread = new Thread(RunThread);
+        public bool terminate = false;
         public World(int renderDistance)
         {
             this.renderDistance = renderDistance;
-            Thread thread = new Thread(RunThread);
+            
             thread.Start(this);
 
         }
-
+        public void TerminateThread()
+        {
+            terminate = true;
+        }
         public void SetRenderDistance(int val)
         {
             renderDistance = val;
@@ -126,7 +130,7 @@ namespace Voxel_engine.World
             World world = (World)obj;
             if (world == null) Console.WriteLine("BROKEN");
             Console.WriteLine("OUTPUT");
-            while (true)
+            while (!world.terminate)
             {
                 int x, y;
                 //Console.WriteLine("ABC");

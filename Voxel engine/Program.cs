@@ -38,7 +38,7 @@ class Program
         
 
         Noise2d.Reseed();
-        World world = new World(10);
+        World world = new World(4);
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
@@ -88,7 +88,7 @@ class Program
             PollErrors();
             
         }
-
+        world.TerminateThread();
         Glfw.Terminate();
     }
     public static void PollErrors()
