@@ -1,14 +1,53 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTex;
-layout (location = 2) int byte aId;
+layout (location = 0) in int x;
+layout (location = 1) in int y;
+layout (location = 2) in int z;
+layout (location = 3) in int vertexID;
+layout (location = 4) in int texID;
+layout (location = 5) in int chunkx;
+layout (location = 6) in int chunky;
+
 out vec2 tex;
-out byte id;
+flat out int id;
 uniform mat4 view;
 uniform mat4 projection;
 void main()
 {
-	gl_Position = projection * view * vec4(pos.x, pos.y, pos.z, 1.0);
-	tex = aTex;
-	id = aId;
+	float vertices[120] =  float[](
+            0, 0, 1.0 ,               0.0 , 1.0 ,
+            1.0 , 0 , 1.0 ,           1.0 , 1.0 ,
+            0 , 1.0 , 1.0 ,           0.0 , 0.0 ,
+            1.0 , 1.0 , 1.0 ,         1.0 , 0.0 ,
+
+            1.0 , 0 , 1.0 ,           0.0 , 1.0 ,
+            1.0 , 0 , 0 ,             1.0 , 1.0 ,
+            1.0 , 1.0 , 1.0 ,         0.0 , 0.0 ,
+            1.0 , 1.0 , 0 ,           1.0 , 0.0 ,
+
+            1.0 , 0 , 0 ,             0.0 , 1.0 ,
+            0 , 0 , 0 ,               1.0 , 1.0 ,
+            1.0 , 1.0 , 0 ,           0.0 , 0.0 ,
+            0 , 1.0 , 0 ,             1.0 , 0.0 ,
+
+            0 , 0 , 0 ,               0.0 , 1.0 ,
+            0 , 0 , 1.0 ,             1.0 , 1.0 ,
+            0 , 1.0 , 0 ,             0.0 , 0.0 ,
+            0 , 1.0 , 1.0 ,           1.0 , 0.0 ,
+
+            0 , 0 , 0 ,               0.0 , 1.0 ,
+            1.0 , 0 , 0 ,             1.0 , 1.0 ,
+            0 , 0 , 1.0 ,             0.0 , 0.0 ,
+            1.0 , 0 , 1.0 ,           1.0 , 0.0 ,
+
+            0 , 1.0 , 1.0 ,           0.0 , 1.0 ,
+            1.0 , 1.0 , 1.0 ,         1.0 , 1.0 ,
+            0 , 1.0 , 0 ,             0.0 , 0.0 ,
+            1.0 , 1.0 , 0 ,           1.0 , 0.0
+        );
+		//gl_Position = projection * view * vec4 (1.0, 1.0, 1.0, 1.0);
+	vec4 position = vec4(float(x) + float(chunkx) * 16.0 + vertices[vertexID*5], float(y) + vertices[vertexID*5+1], float(z) + float(chunky) * 16.0 + vertices[vertexID*5+2], 1.0);
+	gl_Position = projection * view * position;
+	tex = vec2(vertices[vertexID*5+3], vertices[vertexID*5+4]);
+	id = texID;
+	//tex = vec2(1.0, 1.0);
 }
