@@ -25,7 +25,7 @@ namespace Voxel_engine.Render
         }
 
 
-        static string path = "Shaders/";
+        static string path = "";
         static string[] shaderNames = { "vertex.glsl", "fragment.glsl" };
         static int[] shaderTypes = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
     }

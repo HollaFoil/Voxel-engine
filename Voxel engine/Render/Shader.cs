@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static OpenGL.GL;
@@ -19,7 +20,9 @@ namespace Voxel_engine.Render
             this.type = type;
             this.fileName = path;
             shader = glCreateShader(type);
-            source = File.ReadAllText(path);
+            Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+    "Voxel_engine.Assets.Shaders." + path);
+            source = new StreamReader(imgStream, Encoding.UTF8).ReadToEnd();
             Console.WriteLine("OpenGL version is {0} ", glGetString(GL_VERSION)); 
             Console.WriteLine(source);
             glShaderSource(shader, source);
@@ -40,5 +43,7 @@ namespace Voxel_engine.Render
         {
             glDeleteShader(shader);
         }
+        
     }
+
 }

@@ -10,12 +10,49 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Textures\cobblestone.png" />
+    <None Remove="Assets\Textures\dirt.png" />
+    <None Remove="Assets\Textures\grass_block_side.png" />
+    <None Remove="Assets\Textures\grass_block_top.png" />
+    <None Remove="Assets\Textures\map.png" />
+    <None Remove="Assets\Textures\oak_planks.png" />
+    <None Remove="Assets\Textures\sand.png" />
+    <None Remove="Assets\Shaders\fragment.glsl" />
+    <None Remove="Assets\Shaders\vertex.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\Textures\cobblestone.png" />
+    <EmbeddedResource Include="Assets\Textures\dirt.png" />
+    <EmbeddedResource Include="Assets\Textures\grass_block_side.png" />
+    <EmbeddedResource Include="Assets\Textures\grass_block_top.png" />
+    <EmbeddedResource Include="Assets\Textures\map.png" />
+    <EmbeddedResource Include="Assets\Textures\oak_planks.png" />
+    <EmbeddedResource Include="Assets\Textures\sand.png" />
+    <EmbeddedResource Include="Assets\Shaders\fragment.glsl" />
+    <EmbeddedResource Include="Assets\Shaders\vertex.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="GlmSharp" Version="0.9.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Render\Shaders\" />
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

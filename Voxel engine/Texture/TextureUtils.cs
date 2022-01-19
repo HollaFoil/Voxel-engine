@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Png;
+using System.Reflection;
 
 namespace Voxel_engine
 {
@@ -16,13 +17,17 @@ namespace Voxel_engine
     {
         public static byte[] LoadTexture(string filePath, out int width, out int height)
         {
-            using Image<Rgba32> img = Image.Load<Rgba32>("Assets/Textures/" + filePath);
+            Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+    "Voxel_engine.Assets.Textures." + filePath);
+            using Image<Rgba32> img = Image.Load<Rgba32>(imgStream);
             return GetPixelsFromImage(img, out width, out height);
         }
         public static byte[] LoadTexture(int id, out int width, out int height)
         {
             string filePath = "Assets/Textures/" + NameFromID[id] + ".png";
-            using Image<Rgba32> img = Image.Load<Rgba32>(filePath);
+            Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(
+    "Voxel_engine.Assets.Textures." + NameFromID[id] + ".png");
+            using Image<Rgba32> img = Image.Load<Rgba32>(imgStream);
             return GetPixelsFromImage(img, out width, out height);
         }
         private static byte[] GetPixelsFromImage(Image<Rgba32> img, out int width, out int height)
