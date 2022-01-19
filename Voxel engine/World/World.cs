@@ -27,7 +27,7 @@ namespace Voxel_engine.World
             renderDistance = val;
         }
 
-        public void UpdateChunkFaces()
+        private void UpdateChunkFaces()
         {
             Parallel.For(0, loadedChunks.Count, (offset) =>
             {
@@ -42,7 +42,6 @@ namespace Voxel_engine.World
                 {
                     chunk.UpdateExposedFaces(right, left, up, down);
                     chunk.updatedMesh = true;
-                    chunk.GenerateMesh();
                 }
             });
             /*foreach (var chunk in loadedChunks)
@@ -57,6 +56,16 @@ namespace Voxel_engine.World
                 chunk.UpdateExposedFaces(right, left, up, down);
                 chunk.updatedMesh = true;
             }*/
+        }
+        private void GenerateChunkMeshes()
+        {
+            Parallel.For(0, loadedChunks.Count, (offset) =>
+            {
+                lock (loadedChunks[offset])
+                {
+                    loadedChunks[offset].GenerateMesh();
+                }
+            });
         }
         public void LoadAndUnloadChunks(int centerx, int centery)
         {
@@ -135,6 +144,7 @@ namespace Voxel_engine.World
                 world.LoadAndUnloadChunks(x, y);
                 //Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAA");
                 world.UpdateChunkFaces();
+                world.GenerateChunkMeshes();
                 Thread.Sleep(1000 / 20);
             }
 

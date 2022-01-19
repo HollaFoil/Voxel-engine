@@ -38,7 +38,7 @@ class Program
         
 
         Noise2d.Reseed();
-        World world = new World(40);
+        World world = new World(60);
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
