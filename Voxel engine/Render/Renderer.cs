@@ -92,6 +92,10 @@ namespace Voxel_engine.Render
                 if (chunks[i].bufferID == -1) continue;
                 bufferAvailability[chunks[i].bufferID - 1] = false;
             }
+            for (int i = 0; i < bufferAvailability.Count; i++)
+            {
+                if (bufferAvailability[i]) bufferedDataSize[i] = 0;
+            }
         }
 
         public uint GetProgram()

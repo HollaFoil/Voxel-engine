@@ -82,6 +82,7 @@ namespace Voxel_engine.World
                     lock (loadedChunks)
                     {
                         loadedChunks.RemoveAt(i);
+                        i--;
                     }
                 }
             }
@@ -122,7 +123,7 @@ namespace Voxel_engine.World
         {
             int distx = Math.Abs(centerx - chunkx);
             int disty = Math.Abs(centery - chunky);
-            return (distx*distx + disty*disty) <= renderDistance*renderDistance;
+            return (distx*distx + disty*disty) < renderDistance*renderDistance;
         }
 
         private static void RunThread(object? obj)

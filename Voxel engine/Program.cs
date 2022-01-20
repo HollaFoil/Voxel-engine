@@ -19,17 +19,6 @@ class Program
     static uint vao, vbo, ebo;
     static uint[] texIds;
     static Renderer renderer;
-    static void outputnoise(int x, int y, float[] map)
-    {
-        for (int i = 0; i < x; i++)
-        {
-            for (int j = 0; j < y; j++)
-            {
-                Console.Write("{0, -4:f} ", map[i * y + j]);
-            }
-            Console.WriteLine();
-        }
-    }
     static unsafe void Main(string[] args)
     {
         SizeCallback resizeCallback = WindowSizeCallback;
@@ -38,7 +27,7 @@ class Program
         
 
         Noise2d.Reseed();
-        World world = new World(4);
+        World world = new World(10);
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
