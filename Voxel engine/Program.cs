@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using GLFW;
 using GlmSharp;
 using Voxel_engine;
@@ -63,12 +65,9 @@ class Program
             world.UpdatePosition(camera.position);
             glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.getDirection(), new vec3(0, 1, 0))).ToArray());
             sw.Restart();
-
             //world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x / 16.0f), (int)Math.Floor(camera.position.z / 16.0f));
-            lock (world.loadedChunks)
-            {
-                renderer.UpdateChunkBuffers(world.loadedChunks);
-            }
+            List<Chunk> chunks = world.CloneList();
+            renderer.UpdateChunkBuffers(chunks);
 
             renderer.Flush();
 

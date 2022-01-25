@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Png;
 using System.Reflection;
+using System.IO;
 
 namespace Voxel_engine
 {

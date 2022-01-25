@@ -5,8 +5,8 @@ namespace Voxel_engine
     internal class Camera
     {
         public float fov = 90.0f;
-        public vec3 position = new(0f, 150f, -3f);
-        public vec2 yawpitch = new(-90f, 0f);
+        public vec3 position = new vec3(0f, 150f, -3f);
+        public vec2 yawpitch = new vec2(-90f, 0f);
         public float speed = 0.05f;
         public Camera()
         {
@@ -34,7 +34,7 @@ namespace Voxel_engine
         {
             float yaw = -yawpitch.x;
             float pitch = yawpitch.y;
-            vec3 direction = new();
+            vec3 direction = new vec3();
             direction.x = glm.Cos(glm.Radians(yaw)) * glm.Cos(glm.Radians(pitch));
             direction.y = glm.Sin(glm.Radians(pitch));
             direction.z = glm.Sin(glm.Radians(yaw)) * glm.Cos(glm.Radians(pitch));

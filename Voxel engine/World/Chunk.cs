@@ -26,6 +26,16 @@ namespace Voxel_engine.World
             this.x = x;
             this.y = y;
         }
+        public Chunk Clone()
+        {
+            Chunk clone = new Chunk(x, y, blockType);
+            clone.exposedFaces = exposedFaces;
+            clone.bufferID = bufferID;
+            clone.updatedMesh = updatedMesh;
+            clone.bufferedMesh = bufferedMesh;
+            //if (data != null) clone.data = data;
+            return clone;
+        }
         public void SetBufferId(int id)
         {
             bufferID = id;

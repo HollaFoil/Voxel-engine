@@ -1,5 +1,6 @@
 ﻿using GLFW;
 using GlmSharp;
+using System.Collections.Generic;
 
 namespace Voxel_engine
 {
@@ -8,9 +9,9 @@ namespace Voxel_engine
         Window window;
         int keyCount = 6;
         float sensitivity = 0.05f;
-        vec2 facingChange = new(0,0);
-        Dictionary<Keys, int> Keybinds = new();
-        Dictionary<int, bool> ActionHeldState = new();
+        vec2 facingChange = new vec2(0,0);
+        Dictionary<Keys, int> Keybinds = new Dictionary<Keys, int>();
+        Dictionary<int, bool> ActionHeldState = new Dictionary<int, bool>();
         KeyCallback keyCallback;
         MouseCallback mouseCallback;
         MouseCallback scrollCallback;
@@ -74,7 +75,7 @@ namespace Voxel_engine
         }
         public vec2 UpdateMouse()
         {
-            vec2 copy = new(facingChange);
+            vec2 copy = new vec2(facingChange);
             facingChange *= 0;
             return copy;
         }
