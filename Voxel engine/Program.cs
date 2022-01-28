@@ -63,14 +63,14 @@ class Program
             if (sw.ElapsedMilliseconds < 1000 / fps) continue;
             camera.UpdatePosition(inputHandler.GetDirection(), inputHandler.UpdateMouse(), (1000 / fps) / (float)sw.ElapsedMilliseconds, inputHandler.GetSpeed());
             world.UpdatePosition(camera.position);
-            glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.getDirection(), new vec3(0, 1, 0))).ToArray());
+            glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.GetDirection(), new vec3(0, 1, 0))).ToArray());
             sw.Restart();
-            //world.LoadAndUnloadChunks((int)Math.Floor(camera.position.x / 16.0f), (int)Math.Floor(camera.position.z / 16.0f));
-            List<Chunk> chunks = world.CloneList();
-            renderer.UpdateChunkBuffers(chunks);
-
+            //List<Chunk> chunks = world.CloneList();
+            lock (world.loadedChunks)
+            {
+                renderer.UpdateChunkBuffers(world.loadedChunks);
+            }
             renderer.Flush();
-
             Glfw.SwapBuffers(window);
 
             PollErrors();

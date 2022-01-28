@@ -1,4 +1,6 @@
 ﻿using GlmSharp;
+using System.Collections.Generic;
+using Voxel_engine.World;
 
 namespace Voxel_engine
 {
@@ -30,7 +32,7 @@ namespace Voxel_engine
             position.x += (glm.Sin(glm.Radians(yawpitch.x))*direction.x + 
                            glm.Cos(glm.Radians(yawpitch.x))*direction.z) * speed * modifier;
         }
-        public vec3 getDirection()
+        public vec3 GetDirection()
         {
             float yaw = -yawpitch.x;
             float pitch = yawpitch.y;
@@ -40,6 +42,12 @@ namespace Voxel_engine
             direction.z = glm.Sin(glm.Radians(yaw)) * glm.Cos(glm.Radians(pitch));
             
             return glm.Normalized(direction);
+        }
+
+        ///TODO
+        public vec3? GetFacingBlock(List<Chunk> chunks) {
+            vec3 direction = GetDirection();
+            return null;
         }
     }
 }

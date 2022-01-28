@@ -139,7 +139,8 @@ namespace Voxel_engine.Render
                 glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
             }
             chunk.bufferedMesh = true;
-            bufferMaxSizes[(int)buffer - 1] = bufferedDataSize[(int)buffer - 1] = data.Length;
+            bufferMaxSizes[(int)buffer - 1] = data.Length;
+            bufferedDataSize[(int)buffer - 1] = data.Length;
         }
         private unsafe void CreateBuffer(out uint vao, out uint vbo)
         {

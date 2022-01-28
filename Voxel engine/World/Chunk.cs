@@ -3,38 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Voxel_engine.World.Generation;
 
 namespace Voxel_engine.World
 {
     public class Chunk
     {
         private const byte BACK = 1, LEFT = 2, FRONT = 4, RIGHT = 8, BOTTOM = 16, TOP = 32;
-        public byte[,,] blockType = new byte[16, 256, 16];
-        public byte[,,] exposedFaces = new byte[16, 256, 16];
+        public byte[,,] blockType;
+        public byte[,,] exposedFaces;
         public int x, y;
         public int bufferID = -1;
+        public int blockTypePoolId, exposedFacesPoolId;
         public bool updatedMesh = false, bufferedMesh = false;
         public byte[] data;
-        public Chunk(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-        public Chunk(int x, int y, byte[,,] blockType)
+
+        public Chunk(int x, int y, byte[,,] blockType, int poolId)
         {
             this.blockType = blockType;
             this.x = x;
             this.y = y;
+            blockTypePoolId = poolId;
+            exposedFacesPoolId = ChunkArrayPool.Rent3DArray();
+            exposedFaces = ChunkArrayPool.arrayPool[exposedFacesPoolId];
         }
-        public Chunk Clone()
+        public void FreeArrays()
         {
-            Chunk clone = new Chunk(x, y, blockType);
-            clone.exposedFaces = exposedFaces;
-            clone.bufferID = bufferID;
-            clone.updatedMesh = updatedMesh;
-            clone.bufferedMesh = bufferedMesh;
-            //if (data != null) clone.data = data;
-            return clone;
+            ChunkArrayPool.Return3DArray(blockTypePoolId);
+            ChunkArrayPool.Return3DArray(exposedFacesPoolId);
         }
         public void SetBufferId(int id)
         {

@@ -35,7 +35,6 @@ namespace Voxel_engine.World
 
         private void UpdateChunkFaces()
         {
-            //Console.WriteLine();
             Parallel.For(0, loadedChunksBuffer.Count, (offset) =>
             {
                 Chunk chunk = loadedChunksBuffer[offset];
@@ -44,13 +43,11 @@ namespace Voxel_engine.World
                 Chunk right = loadedChunksBuffer.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
                 Chunk up = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
                 Chunk down = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
-                Chunk clone = chunk.Clone();
-                clone.UpdateExposedFaces(right, left, up, down);
-                clone.GenerateMesh();
-                clone.updatedMesh = true;
-                lock (chunk) lock (clone)
+                lock (chunk) 
                 {
-                    chunk = clone;
+                        chunk.UpdateExposedFaces(right, left, up, down);
+                        chunk.GenerateMesh();
+                        chunk.updatedMesh = true;
                 }
             });
             /*foreach (var chunk in loadedChunks)
@@ -81,6 +78,7 @@ namespace Voxel_engine.World
                     if (right != null) right.SetNotUpdated();
                     if (up != null) up.SetNotUpdated();
                     if (down != null) down.SetNotUpdated();
+                    loadedChunksBuffer[i].FreeArrays();
                     loadedChunksBuffer.RemoveAt(i);
                     i--;
                 }
@@ -105,20 +103,22 @@ namespace Voxel_engine.World
                     if (down != null) down.SetNotUpdated();
                 }
             }
-            //UpdateChunkFaces();
+            Console.WriteLine(loadedChunksBuffer.Count);
         }
         public List<Chunk> CloneList()
         {
             lock (loadedChunks)
             {
-                List<Chunk> clone = new List<Chunk>();
+                List<Chunk> clone = new List<Chunk>(loadedChunks.Count);
                 foreach (var chunk in loadedChunks) clone.Add(chunk);
                 return clone;
             }
         }
-        private void CopyChunksToBuffer()
+
+        private void SwapBuffers()
         {
-            foreach (var chunk in loadedChunks) loadedChunksBuffer.Add(chunk);
+            loadedChunks.Clear();
+            foreach (var chunk in loadedChunksBuffer) loadedChunks.Add(chunk);
         }
         public void UpdatePosition(vec3 pos)
         {
@@ -139,27 +139,20 @@ namespace Voxel_engine.World
         {
             World world = (World)obj;
             if (world == null) Console.WriteLine("BROKEN");
-            Console.WriteLine("OUTPUT");
             while (!world.terminate)
             {
 
                 int x, y;
-                //Console.WriteLine("ABC");
                 lock (world.position)
                 {
                     x = world.position.GetChunkX();
                     y = world.position.GetChunkY();
                 }
-                world.CopyChunksToBuffer();
-                //Console.WriteLine("{0} {1}", x, y);
                 world.LoadAndUnloadChunks(x, y);
-                //Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAA");
                 world.UpdateChunkFaces();
-                
                 lock (world.loadedChunks) lock (world.loadedChunksBuffer)
                 {
-                    world.loadedChunks = world.loadedChunksBuffer;
-                    world.loadedChunksBuffer = new List<Chunk>();
+                        world.SwapBuffers();
                 }
                 Thread.Sleep(1000 / 20);
             }
