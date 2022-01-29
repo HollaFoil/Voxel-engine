@@ -14,13 +14,19 @@ namespace Voxel_engine.World
         public List<Chunk> loadedChunks = new List<Chunk>();
         public List<Chunk> loadedChunksBuffer = new List<Chunk>();
         int renderDistance = 10;
+        public int MaxNewChunksPerTick { get; private set; }
+
+        private List<Tuple<int, int>> chunkUpdatePattern = null;
+
         public Position position = new Position();
         Thread thread = new Thread(RunThread);
         public bool terminate = false;
-        public World(int renderDistance)
+        public World(int renderDistance, int maxNewChunksPerTick)
         {
             this.renderDistance = renderDistance;
-            
+            this.MaxNewChunksPerTick = maxNewChunksPerTick;
+            UpdateChunkLoadingPattern();
+
             thread.Start(this);
 
         }
@@ -31,6 +37,7 @@ namespace Voxel_engine.World
         public void SetRenderDistance(int val)
         {
             renderDistance = val;
+            UpdateChunkLoadingPattern();
         }
 
         private void UpdateChunkFaces()
@@ -64,6 +71,39 @@ namespace Voxel_engine.World
                 chunk.updatedMesh = true;
             }*/
         }
+
+        private void UpdateChunkLoadingPattern()
+        {
+            lock (chunkUpdatePattern)
+            {
+                chunkUpdatePattern = new List<Tuple<int, int>>();
+                for (int i = -renderDistance; i <= renderDistance; i++)
+                {
+                    for (int j = -renderDistance; j <= renderDistance; j++)
+                    {
+                        if (!IsWithinDistance(0, 0, i, j)) continue;
+                        chunkUpdatePattern.Add(new Tuple<int, int>(i, j));
+                    }
+                }
+
+                chunkUpdatePattern.Sort(delegate (Tuple<int, int> x, Tuple<int, int> y)
+                {
+                    // find distances to origin
+                    int d1 = x.Item1 * x.Item1 + x.Item2 * x.Item2;
+                    int d2 = y.Item1 * y.Item1 + y.Item2 * y.Item2;
+
+                    if (d1 == d2)
+                    {
+                        // slow, but idc because calculated only on render distance change
+                        double a1 = Math.Atan2(x.Item1, x.Item2);
+                        double a2 = Math.Atan2(y.Item1, y.Item2);
+                        return a1.CompareTo(a2);
+                    }
+                    return d1.CompareTo(d2);
+                });
+            }
+        }
+
         public void LoadAndUnloadChunks(int centerx, int centery)
         {
             for (int i = 0; i < loadedChunksBuffer.Count; i++)
@@ -84,13 +124,13 @@ namespace Voxel_engine.World
                     i--;
                 }
             }
-            for (int i = 0; i < renderDistance * 2; i++)
+            lock (chunkUpdatePattern)
             {
-                for (int j = 0; j < renderDistance * 2; j++)
+                int loadedChunks = 0;
+                foreach ((int cdx, int cdy) in chunkUpdatePattern)
                 {
-                    if (!IsWithinDistance(centerx, centery, centerx + i - renderDistance, centery + j - renderDistance) ||
-                    loadedChunksBuffer.Any(c => (c.x == centerx + i - renderDistance) && (c.y == centery + j - renderDistance))) continue;
-                    loadedChunksBuffer.Add(ChunkGenerator.GenerateChunk(centerx + i - renderDistance, centery + j - renderDistance));
+                    if (loadedChunksBuffer.Any(c => (c.x == centerx + cdx) && (c.y == centery + cdy))) continue;
+                    loadedChunksBuffer.Add(ChunkGenerator.GenerateChunk(centerx + cdx, centery + cdy));
 
                     Chunk chunk = loadedChunksBuffer[loadedChunksBuffer.Count - 1];
                     chunk.SetNotUpdated();
@@ -102,6 +142,7 @@ namespace Voxel_engine.World
                     if (right != null) right.SetNotUpdated();
                     if (up != null) up.SetNotUpdated();
                     if (down != null) down.SetNotUpdated();
+                    if (++loadedChunks == MaxNewChunksPerTick) break;
                 }
             }
         }
