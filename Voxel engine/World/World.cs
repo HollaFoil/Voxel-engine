@@ -23,6 +23,7 @@ namespace Voxel_engine.World
         public bool terminate = false;
         public World(int renderDistance, int maxNewChunksPerTick)
         {
+            chunkUpdatePattern = new List<Tuple<int, int>>();
             this.renderDistance = renderDistance;
             this.MaxNewChunksPerTick = maxNewChunksPerTick;
             UpdateChunkLoadingPattern();
@@ -74,6 +75,7 @@ namespace Voxel_engine.World
 
         private void UpdateChunkLoadingPattern()
         {
+
             lock (chunkUpdatePattern)
             {
                 chunkUpdatePattern = new List<Tuple<int, int>>();
