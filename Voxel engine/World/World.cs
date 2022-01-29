@@ -45,9 +45,10 @@ namespace Voxel_engine.World
                 Chunk down = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
                 lock (chunk) 
                 {
-                        chunk.UpdateExposedFaces(right, left, up, down);
-                        chunk.GenerateMesh();
-                        chunk.updatedMesh = true;
+                    chunk.UpdateExposedFaces(right, left, up, down);
+                        //chunk.UpdateExposedFaces(null, null, null, null);
+                    chunk.GenerateMesh();
+                    chunk.updatedMesh = true;
                 }
             });
             /*foreach (var chunk in loadedChunks)
@@ -103,7 +104,6 @@ namespace Voxel_engine.World
                     if (down != null) down.SetNotUpdated();
                 }
             }
-            Console.WriteLine(loadedChunksBuffer.Count);
         }
         public List<Chunk> CloneList()
         {

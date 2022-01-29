@@ -7,6 +7,7 @@ using GlmSharp;
 using Voxel_engine;
 using Voxel_engine.Render;
 using Voxel_engine.World;
+using Voxel_engine.World.Generation;
 using static OpenGL.GL;
 
 class Program
@@ -72,7 +73,6 @@ class Program
             }
             renderer.Flush();
             Glfw.SwapBuffers(window);
-
             PollErrors();
             
         }

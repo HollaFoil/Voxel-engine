@@ -33,8 +33,11 @@ namespace Voxel_engine
                     vertices[currentByte + 2] = z;
                     vertices[currentByte + 3] = indices[i * 6 + j];
                     vertices[currentByte + 4] = faceTexIds[tex - 1, i];
-                    int[] chunkcoords = { chunkx, chunky };
+                    int[] chunkcoords = ArrayPool<int>.Shared.Rent(2);
+                    chunkcoords[0] = chunkx;
+                    chunkcoords[1] = chunky;
                     CopyToByteArray(currentByte + 5, ref vertices, ref chunkcoords);
+                    ArrayPool<int>.Shared.Return(chunkcoords);
                     currentByte += sizeOfVertex;
 
                 }
