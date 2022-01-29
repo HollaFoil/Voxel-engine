@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Buffers;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -124,7 +125,7 @@ namespace Voxel_engine
         {
             ResetSettings();
             int width = 16, height = 16;
-            var data = new float[width * height];
+            var data = ArrayPool<float>.Shared.Rent(width * height);
 
             /// track min and max noise value. Used to normalize the result to the 0 to 1.0 range.
             var min = float.MaxValue;

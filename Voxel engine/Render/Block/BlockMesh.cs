@@ -1,5 +1,6 @@
 ﻿using GlmSharp;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,10 +17,11 @@ namespace Voxel_engine
                 faceCounts[i] = Convert.ToString(i, 2).ToCharArray().Count(c => c == '1');
             }
         }
-        public static byte[] GetVertices(byte faces, byte tex, byte x, byte y, byte z, int chunkx, int chunky)
+        public static byte[] GetVertices(byte faces, byte tex, byte x, byte y, byte z, int chunkx, int chunky, out int length)
         {
             //block byte xyz, vertex id byte, tex id byte, chunk int x, y
-            byte[] vertices = new byte[faceCounts[faces] * sizeOfFace];
+            byte[] vertices = ArrayPool<byte>.Shared.Rent(faceCounts[faces] * sizeOfFace);
+            length = faceCounts[faces] * sizeOfFace;
             int currentByte = 0;
             for (int i = 0, face = 1; i < 6; i++, face *= 2)
             {

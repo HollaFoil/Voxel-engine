@@ -122,25 +122,25 @@ namespace Voxel_engine.Render
         {
             
             byte[] data = chunk.data;
-            if (data == null || data.Length == 0 || chunk.bufferID == -1) return;
+            if (data == null || chunk.dataLength == 0 || chunk.bufferID == -1) return;
             glBindBuffer(GL_ARRAY_BUFFER, buffer);
-            if (data.Length < bufferMaxSizes[(int)buffer - 1])
+            if (chunk.dataLength < bufferMaxSizes[(int)buffer - 1])
             {
                 fixed (void* ptr = &data[0])
                 {
-                    glBufferSubData(GL_ARRAY_BUFFER, 0, data.Length, ptr);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, chunk.dataLength, ptr);
                 }
                 chunk.bufferedMesh = true;
-                bufferedDataSize[(int)buffer - 1] = data.Length;
+                bufferedDataSize[(int)buffer - 1] = chunk.dataLength;
                 return;
             }
             fixed (void* ptr = &data[0])
             {
-                glBufferData(GL_ARRAY_BUFFER, data.Length, ptr, GL_DYNAMIC_DRAW);
+                glBufferData(GL_ARRAY_BUFFER, chunk.dataLength, ptr, GL_DYNAMIC_DRAW);
             }
             chunk.bufferedMesh = true;
-            bufferMaxSizes[(int)buffer - 1] = data.Length;
-            bufferedDataSize[(int)buffer - 1] = data.Length;
+            bufferMaxSizes[(int)buffer - 1] = chunk.dataLength;
+            bufferedDataSize[(int)buffer - 1] = chunk.dataLength;
         }
         private unsafe void CreateBuffer(out uint vao, out uint vbo)
         {

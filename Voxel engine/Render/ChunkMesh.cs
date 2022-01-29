@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Voxel_engine
 {
     internal static class ChunkMesh
     {
-        public static byte[] GenerateMesh(byte[,,] block, byte[,,] exposedFaces, int chunkx, int chunky)
+        public static byte[] GenerateMesh(byte[,,] block, byte[,,] exposedFaces, int chunkx, int chunky, out int length)
         {
 
             int faces = 0;
@@ -28,7 +29,8 @@ namespace Voxel_engine
                     }
                 }
             }
-            byte[] mesh = new byte[faces * BlockMesh.sizeOfFace];
+            length = faces * BlockMesh.sizeOfFace;
+            byte[] mesh = ArrayPool<byte>.Shared.Rent(length);
             int index = 0;
             for (byte x = 0; x < 16; x++)
             {
@@ -37,9 +39,10 @@ namespace Voxel_engine
                     for (byte z = 0; z < 16; z++)
                     {
                         if (block[x, y, z] == 0) continue;
-                        byte[] data = BlockMesh.GetVertices(exposedFaces[x, y, z], block[x, y, z], x, (byte)y, z, chunkx, chunky);
-                        Buffer.BlockCopy(data, 0, mesh, index, data.Length);
-                        index += data.Length;
+                        byte[] data = BlockMesh.GetVertices(exposedFaces[x, y, z], block[x, y, z], x, (byte)y, z, chunkx, chunky, out int size);
+                        Buffer.BlockCopy(data, 0, mesh, index, size);
+                        index += size;
+                        ArrayPool<byte>.Shared.Return(data, true);
                     }
                 }
             }

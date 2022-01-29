@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Voxel_engine.World
         public int blockTypePoolId, exposedFacesPoolId;
         public bool updatedMesh = false, bufferedMesh = false;
         public byte[] data;
+        public int dataLength = 0;
 
         public Chunk(int x, int y, byte[,,] blockType, int poolId)
         {
@@ -26,11 +28,13 @@ namespace Voxel_engine.World
             blockTypePoolId = poolId;
             exposedFacesPoolId = ChunkArrayPool.Rent3DArray();
             exposedFaces = ChunkArrayPool.arrayPool[exposedFacesPoolId];
+            
         }
         public void FreeArrays()
         {
             ChunkArrayPool.Return3DArray(blockTypePoolId);
             ChunkArrayPool.Return3DArray(exposedFacesPoolId);
+            ArrayPool<byte>.Shared.Return(data, true);
         }
         public void SetBufferId(int id)
         {
@@ -38,7 +42,8 @@ namespace Voxel_engine.World
         }
         public void GenerateMesh()
         {
-            data = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y);
+            data = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
+            dataLength = length;
         }
         public void UpdateExposedFaces(Chunk right, Chunk left, Chunk down, Chunk up)
         {
