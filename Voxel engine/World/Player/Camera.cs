@@ -48,8 +48,7 @@ namespace Voxel_engine
         {
             if (dx == 0.0f) dx = 1.0f;
             dx = dx / Math.Abs(dx);
-                 
-            x += .5f;
+            
             float frac = (float)(x - Math.Truncate(x));
             if(frac < 0.0f) frac += 1.0f;
 
@@ -84,43 +83,21 @@ namespace Voxel_engine
             if (direction.z == 0.0f) direction.z = 1e-6f;
 
             vec3 currPos = new vec3(position);
+            Console.WriteLine($"Starting position {position}");
             while (vec3.Distance(currPos, position) <= maxDist)
             {
                 float moveX = NextFaceHit(currPos.x, magnitudes.x) / direction.x;
                 float moveY = NextFaceHit(currPos.y, magnitudes.y) / direction.y;
                 float moveZ = NextFaceHit(currPos.z, magnitudes.z) / direction.z;
-                vec3 blockPos;
+                float move = Math.Min(Math.Min(moveX, moveY), moveZ);
+                vec3 middlePos = currPos + direction * move * .5f;
+                currPos += direction * move;
 
-                if(moveX < moveY && moveX < moveZ) {
-                    currPos += moveX * direction;
-                    blockPos = new vec3(
-                        currPos.x + magnitudes.x * .5f,
-                        (float)Math.Round(currPos.y),
-                        (float)Math.Round(currPos.z)
-                    );
-                }
-                else if(moveY < moveZ && moveY < moveX) {
-                    currPos += moveY * direction;
-                    blockPos = new vec3(
-                        (float)Math.Round(currPos.x),
-                        currPos.y + magnitudes.y * .5f,
-                        (float)Math.Round(currPos.z)
-                    );
-                }
-                else {
-                    currPos += moveZ * direction;
-                    blockPos = new vec3(
-                        (float)Math.Round(currPos.x),
-                        (float)Math.Round(currPos.y),
-                        currPos.z + magnitudes.z * .5f
-                    );
-                }
+                int blockx = (int)Math.Floor(middlePos.x);
+                int blocky = (int)Math.Floor(middlePos.y);
+                int blockz = (int)Math.Floor(middlePos.z);
 
-                int blockx = (int)Math.Round(blockPos.x);
-                int blocky = (int)Math.Round(blockPos.y);
-                int blockz = (int)Math.Round(blockPos.z);
-
-                Console.WriteLine($"Block {blockPos} {blockx} {blocky} {blockz}");
+                Console.WriteLine($"Block {blockx} {blocky} {blockz} currPos {currPos}");
 
                 int chunkx = (blockx >= 0 ? blockx / 16 : ((blockx - 15) / 16));
                 int chunky = (blockz >= 0 ? blockz / 16 : ((blockz - 15) / 16));
