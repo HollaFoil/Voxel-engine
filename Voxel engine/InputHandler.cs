@@ -1,6 +1,7 @@
 ﻿using GLFW;
 using GlmSharp;
 using System.Collections.Generic;
+using Voxel_engine.World;
 
 namespace Voxel_engine
 {
@@ -15,13 +16,15 @@ namespace Voxel_engine
         KeyCallback keyCallback;
         MouseCallback mouseCallback;
         MouseCallback scrollCallback;
+        Camera camera;
         float speed = 0.05f;
         int width, height, windowx, windowy;
-        public InputHandler(Window window)
+        public InputHandler(Window window, Camera camera)
         {
             keyCallback = KeyCallback;
             mouseCallback = MouseCallback;
             scrollCallback = ScrollCallback;
+            this.camera = camera;
             InitKeybinds();
             foreach (var Key in possibleKeys) ActionHeldState.Add(Keybinds[Key], false);
             Glfw.SetScrollCallback(window, scrollCallback);
@@ -33,6 +36,28 @@ namespace Voxel_engine
             Glfw.GetWindowPosition(window, out windowx, out windowy);
         }
         private void KeyCallback(Window window, Keys key, int scancode, InputState state, ModifierKeys modifiers) {
+
+            if (key == Keys.Q && state == InputState.Press)
+            {
+                Console.WriteLine("pressed Q");
+                Tuple<int, int, int> block = camera.GetFacingBlock(Program.chunkList, 5.0f);
+                if (block != null)
+                {
+                    (int blockx, int blocky, int blockz) = block;
+
+                    int chunkx = (blockx >= 0 ? blockx / 16 : ((blockx - 15) / 16));
+                    int chunky = (blockz >= 0 ? blockz / 16 : ((blockz - 15) / 16));
+                    Chunk c = Program.chunkList.Find(c => c.x == chunkx && c.y == chunky);
+                    c.blockType[blockx - chunkx * 16,
+                        Math.Min(blocky, 255),
+                        blockz - chunky * 16] = 0;
+
+                    c.SetNotUpdated();
+
+                    Console.WriteLine($"Removed {block}");
+                }
+            }
+
             if (window == null) return;
             if (state == InputState.Repeat || !Keybinds.ContainsKey(key)) return;
             else if (state == InputState.Press) ActionHeldState[Keybinds[key]] = true;

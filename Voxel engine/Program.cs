@@ -22,6 +22,7 @@ class Program
     static uint vao, vbo, ebo;
     static uint[] texIds;
     static Renderer renderer;
+    public static List<Chunk> chunkList;
     static unsafe void Main(string[] args)
     {
         SizeCallback resizeCallback = WindowSizeCallback;
@@ -34,8 +35,9 @@ class Program
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
-        InputHandler inputHandler = new InputHandler(window);
         Camera camera = new Camera();
+        InputHandler inputHandler = new InputHandler(window, camera);
+
         int viewLoc = glGetUniformLocation(renderer.GetProgram(), "view");
 
         
@@ -66,7 +68,8 @@ class Program
             world.UpdatePosition(camera.position);
             glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.GetDirection(), new vec3(0, 1, 0))).ToArray());
             sw.Restart();
-            //List<Chunk> chunks = world.CloneList();
+            List<Chunk> chunks = world.CloneList();
+            chunkList = chunks;
             lock (world.loadedChunks)
             {
                 renderer.UpdateChunkBuffers(world.loadedChunks);
@@ -74,7 +77,6 @@ class Program
             renderer.Flush();
             Glfw.SwapBuffers(window);
             PollErrors();
-            
         }
         world.TerminateThread();
         Glfw.Terminate();
