@@ -160,7 +160,7 @@ namespace Voxel_engine.World
         private void SwapBuffers()
         {
             loadedChunks.Clear();
-            loadedChunks = new List<Chunk>(loadedChunksBuffer.Values);
+            loadedChunks.AddRange(loadedChunksBuffer.Values);
         }
         public void UpdatePosition(vec3 pos)
         {
@@ -191,14 +191,18 @@ namespace Voxel_engine.World
                     x = world.position.GetChunkX();
                     y = world.position.GetChunkY();
                 }
-                world.LoadAndUnloadChunks(x, y);
-                world.UpdateChunkFaces();
+                bool changed = world.LoadAndUnloadChunks(x, y);
 
-                
-                lock (world.loadedChunks) lock (world.loadedChunksBuffer)
+                if (changed)
                 {
-                    world.SwapBuffers();
+                    world.UpdateChunkFaces();
+
+                    lock (world.loadedChunks) lock (world.loadedChunksBuffer)
+                    {
+                        world.SwapBuffers();
+                    }
                 }
+                
                 Thread.Sleep(1000 / 20);
             }
 
