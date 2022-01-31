@@ -38,6 +38,9 @@ namespace Voxel_engine.World
             ChunkArrayPool.Return3DArray(blockTypePoolId);
             ChunkArrayPool.Return3DArray(exposedFacesPoolId);
             ArrayPool<byte>.Shared.Return(data, true);
+            blockType = null;
+            exposedFaces = null;
+            data = null;
         }
         public void SetBufferId(int id)
         {
@@ -118,6 +121,12 @@ namespace Voxel_engine.World
                     return;
                 }
             }
+        }
+        public void UnloadChunk()
+        {
+            SetNeighboursNotUpdated();
+            FreeArrays();
+            RemoveAllNeighbours();
         }
         public void RemoveAllNeighbours()
         {

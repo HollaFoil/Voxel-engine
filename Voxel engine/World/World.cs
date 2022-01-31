@@ -105,8 +105,7 @@ namespace Voxel_engine.World
             {
                 if(!IsWithinDistance(centerx, centery, c.x, c.y))
                 {
-                    c.SetNeighboursNotUpdated();
-                    c.FreeArrays();
+                    c.UnloadChunk();
                     toRemove.Add(key);
                     chunksModified = true;
                 }
