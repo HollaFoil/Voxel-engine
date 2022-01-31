@@ -12,26 +12,28 @@ namespace Voxel_engine.World.Generation
         static int octaves = 3;
         public static Chunk GenerateChunk(int chunkx, int chunky)
         {
-            var data = Noise2d.GenerateChunkNoiseMap(chunkx, chunky, octaves);
+            //var data = Noise2d.GenerateChunkNoiseMap(chunkx, chunky, octaves);
             int poolId = ChunkArrayPool.Rent3DArray();
-
+            float min = 0, max = 1;
+            var map = Perlin3D.GenerateChunkNoiseMap(chunkx, chunky, 1);
             byte[,,] blockTypes = ChunkArrayPool.arrayPool[poolId];
             for (int x = 0; x < 16; x++)
             {
-                for (int z = 0; z < 16; z++)
+                for (int y = 0; y < 256; y++)
                 {
-                    int height = (int)Math.Ceiling((1.0f + data[x * 16 + z]) / 2 * 255);
-                    blockTypes[x, height, z] = 4;
-                    blockTypes[x, height - 1, z] = 2;
-                    blockTypes[x, height - 2, z] = 2;
-                    blockTypes[x, height - 3, z] = 2;
-                    for (int y = height - 4; y >= 0; y--)
+                    for (int z = 0; z < 16; z++)
                     {
-                        blockTypes[x, y, z] = 6;
+                        //float val = Perlin3D.Noise(x + chunkx*16, y, z + chunky * 16, 4, ref min, ref max);
+                        //if (val > 0.01f) Console.WriteLine("Biggah");
+                        //int height = (int)Math.Ceiling((1.0f + data[x * 16 + z]) / 2 * 255);
+                        blockTypes[x, y, z] = (map[x + z * 16 + y*16*16] > 0.5f ? (byte)1 : (byte)0);
                     }
                 }
+                
             }
-            ArrayPool<float>.Shared.Return(data, true);
+            Console.WriteLine(min);
+            Console.WriteLine(max);
+            //ArrayPool<float>.Shared.Return(data, true);
             return new Chunk(chunkx, chunky, blockTypes, poolId);
         }
 

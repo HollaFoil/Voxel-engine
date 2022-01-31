@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Voxel_engine.World.Generation
 {
-    public class Perlin3D
+    static class Perlin3D
     {
         /// adapted from http://cs.nyu.edu/~perlin/noise/
-
+        private static float freq = 0.1f;
         private static int[] p = new int[512];
         private static int[] permutation = { 151,160,137,91,90,15,
                131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -99,9 +100,59 @@ namespace Voxel_engine.World.Generation
 
             return perlin;
         }
+        public static float[] GenerateChunkNoiseMap(int chunkX, int chunkY, int octaves)
+        {
+            int width = 16, height = 256, length = 16;
+            var data = ArrayPool<float>.Shared.Rent(width * height * length);
+
+            /// track min and max noise value. Used to normalize the result to the 0 to 1.0 range.
+            var min = float.MaxValue;
+            var max = float.MinValue;
+
+            /// rebuild the permutation table to get a different noise pattern. 
+            /// Leave this out if you want to play with changing the number of octaves while 
+            /// maintaining the same overall pattern.
+            //Noise2d.Reseed();
+
+            var freq = 0.1f;
+            var amp = 0.4f;
+            var pers = 0.3f;
+
+            for (var octave = 0; octave < octaves; octave++)
+            {
+                /// parallel loop - easy and fast.
+                Parallel.For(0, width * height * length, (offset) =>
+                {
+                    var i = offset % (width);
+                    var j = (offset / width) / width;
+                    var k = (offset / width) % width;
+                    var noise = Noise((i + 16 * chunkX) * freq * 1f, (j) * freq * 1f, (k + 16 * chunkY) * freq * 1f);
+                    noise = data[i + k * width + j * width * width] += noise * amp;
+
+                    min = Math.Min(min, noise);
+                    max = Math.Max(max, noise);
+
+                }
+                );
+
+                freq *= 2;
+                amp *= pers;
+            }
+            Parallel.For(0, width * height * length, (offset) =>
+            {
+                var i = offset % (width);
+                var j = offset / width / width;
+                var k = offset / width % width;
+                data[i + k * width + j * width * width] = (data[i + k * width + j * width * width] - min) / (max - min);
+
+            }
+                );
+            return data;
+        }
 
         public static float Noise(float x, float y, float z)
         {
+            //x *= freq; y *= freq; z *= freq;
             int X = (int)Math.Floor(x) % _halfLength;
             int Y = (int)Math.Floor(y) % _halfLength;
             int Z = (int)Math.Floor(z) % _halfLength;
@@ -115,9 +166,9 @@ namespace Voxel_engine.World.Generation
             if (Z < 0)
                 Z += _halfLength;
 
-            x -= (int)Math.Floor(x);
-            y -= (int)Math.Floor(y);
-            z -= (int)Math.Floor(z);
+            x -= (int)Math.Floor(x) + 0.5f;
+            y -= (int)Math.Floor(y) + 0.5f;
+            z -= (int)Math.Floor(z) + 0.5f;
 
             var u = Fade(x);
             var v = Fade(y);
