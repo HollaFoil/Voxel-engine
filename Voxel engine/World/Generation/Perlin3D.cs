@@ -114,8 +114,8 @@ namespace Voxel_engine.World.Generation
             /// maintaining the same overall pattern.
             //Noise2d.Reseed();
 
-            var freq = 0.1f;
-            var amp = 0.4f;
+            var freq = 0.01f;
+            //var amp = 0.4f;
             var pers = 0.3f;
 
             for (var octave = 0; octave < octaves; octave++)
@@ -127,7 +127,7 @@ namespace Voxel_engine.World.Generation
                     var j = (offset / width) / width;
                     var k = (offset / width) % width;
                     var noise = Noise((i + 16 * chunkX) * freq * 1f, (j) * freq * 1f, (k + 16 * chunkY) * freq * 1f);
-                    noise = data[i + k * width + j * width * width] += noise * amp;
+                    noise = data[i + k * width + j * width * width] += noise;
 
                     min = Math.Min(min, noise);
                     max = Math.Max(max, noise);
@@ -136,7 +136,7 @@ namespace Voxel_engine.World.Generation
                 );
 
                 freq *= 2;
-                amp *= pers;
+                //amp *= pers;
             }
             Parallel.For(0, width * height * length, (offset) =>
             {
