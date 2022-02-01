@@ -1,6 +1,7 @@
 ﻿using GlmSharp;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,7 +13,15 @@ namespace Voxel_engine.World
     internal class World
     {
         public List<Chunk> loadedChunks = new List<Chunk>();
-        public List<Chunk> loadedChunksBuffer = new List<Chunk>();
+        private List<Tuple<int, int>> toRemove = new List<Tuple<int, int>>();
+        private Dictionary<Tuple<int, int>, Chunk> loadedChunksBuffer = new Dictionary<Tuple<int, int>, Chunk>();
+        public static IReadOnlyList<Tuple<int, int>> directions = new ReadOnlyCollection<Tuple<int, int>>(new List<Tuple<int, int>>
+        {
+            new Tuple<int, int>(-1, 0),
+            new Tuple<int, int>(1, 0),
+            new Tuple<int, int>(0, 1),
+            new Tuple<int, int>(0, -1)
+        });
         int renderDistance = 10;
         public int MaxNewChunksPerTick { get; private set; }
 
@@ -43,34 +52,16 @@ namespace Voxel_engine.World
 
         private void UpdateChunkFaces()
         {
-            Parallel.For(0, loadedChunksBuffer.Count, (offset) =>
+            Parallel.ForEach(loadedChunksBuffer.Values, (chunk) =>
             {
-                Chunk chunk = loadedChunksBuffer[offset];
                 if (chunk.updatedMesh) return;
-                Chunk left = loadedChunksBuffer.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
-                Chunk right = loadedChunksBuffer.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
-                Chunk up = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
-                Chunk down = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
-                lock (chunk) 
+                lock (chunk)
                 {
-                    chunk.UpdateExposedFaces(right, left, up, down);
-                        //chunk.UpdateExposedFaces(null, null, null, null);
+                    chunk.UpdateExposedFaces();
                     chunk.GenerateMesh();
                     chunk.updatedMesh = true;
                 }
             });
-            /*foreach (var chunk in loadedChunks)
-            {
-                if (chunk.updatedMesh) continue;
-                Chunk left = loadedChunks.Find(c => (c.x - 1 == chunk.x) && (c.y == chunk.y));
-                Chunk right = loadedChunks.Find(c => (c.x + 1 == chunk.x) && (c.y == chunk.y));
-                Chunk up = loadedChunks.Find(c => (c.x == chunk.x) && (c.y - 1 == chunk.y));
-                Chunk down = loadedChunks.Find(c => (c.x == chunk.x) && (c.y + 1== chunk.y));
-
-
-                chunk.UpdateExposedFaces(right, left, up, down);
-                chunk.updatedMesh = true;
-            }*/
         }
 
         private void UpdateChunkLoadingPattern()
@@ -106,48 +97,55 @@ namespace Voxel_engine.World
             }
         }
 
-        public void LoadAndUnloadChunks(int centerx, int centery)
+        public bool LoadAndUnloadChunks(int centerx, int centery)
         {
-            for (int i = 0; i < loadedChunksBuffer.Count; i++)
+            bool chunksModified = false;
+            toRemove.Clear();
+            foreach((Tuple<int, int> key, Chunk c) in loadedChunksBuffer)
             {
-                if (!IsWithinDistance(centerx, centery, loadedChunksBuffer[i].x, loadedChunksBuffer[i].y))
+                if(!IsWithinDistance(centerx, centery, c.x, c.y))
                 {
-                    Chunk chunk = loadedChunksBuffer[i];
-                    Chunk left = loadedChunksBuffer.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
-                    Chunk right = loadedChunksBuffer.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
-                    Chunk up = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
-                    Chunk down = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
-                    if (left != null) left.SetNotUpdated();
-                    if (right != null) right.SetNotUpdated();
-                    if (up != null) up.SetNotUpdated();
-                    if (down != null) down.SetNotUpdated();
-                    loadedChunksBuffer[i].FreeArrays();
-                    loadedChunksBuffer.RemoveAt(i);
-                    i--;
+                    c.UnloadChunk();
+                    toRemove.Add(key);
+                    chunksModified = true;
                 }
             }
+            foreach (var key in toRemove) loadedChunksBuffer.Remove(key);
             lock (chunkUpdatePattern)
             {
                 int loadedChunks = 0;
                 foreach ((int cdx, int cdy) in chunkUpdatePattern)
                 {
-                    if (loadedChunksBuffer.Any(c => (c.x == centerx + cdx) && (c.y == centery + cdy))) continue;
-                    loadedChunksBuffer.Add(ChunkGenerator.GenerateChunk(centerx + cdx, centery + cdy));
+                    Tuple<int, int> pos = new Tuple<int, int>(cdx + centerx, cdy + centery);
+                    if (loadedChunksBuffer.ContainsKey(pos)) continue;
+                    Chunk newChunk = ChunkGenerator.GenerateChunk(pos.Item1, pos.Item2);
+                    loadedChunksBuffer.Add(pos, newChunk);
 
-                    Chunk chunk = loadedChunksBuffer[loadedChunksBuffer.Count - 1];
-                    chunk.SetNotUpdated();
-                    Chunk left = loadedChunksBuffer.Find(c => ((c.x - 1 == chunk.x) && (c.y == chunk.y)));
-                    Chunk right = loadedChunksBuffer.Find(c => ((c.x + 1 == chunk.x) && (c.y == chunk.y)));
-                    Chunk up = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y - 1 == chunk.y)));
-                    Chunk down = loadedChunksBuffer.Find(c => ((c.x == chunk.x) && (c.y + 1 == chunk.y)));
-                    if (left != null) left.SetNotUpdated();
-                    if (right != null) right.SetNotUpdated();
-                    if (up != null) up.SetNotUpdated();
-                    if (down != null) down.SetNotUpdated();
+                    newChunk.SetNotUpdated();
+                    foreach((int dx, int dy) in directions)
+                    {
+                        Chunk neighbour = GetChunk(dx + pos.Item1, dy + pos.Item2);
+                        if (neighbour != null)
+                        {
+                            neighbour.RegisterNeighbour(newChunk);
+                            newChunk.RegisterNeighbour(neighbour);
+                            neighbour.SetNotUpdated();
+                        }
+                    }
+                    chunksModified = true;
                     if (++loadedChunks == MaxNewChunksPerTick) break;
                 }
             }
+            return chunksModified;
         }
+
+        public Chunk GetChunk(int x, int y)
+        {
+            Tuple<int, int> pos = new Tuple<int, int>(x, y);
+            if (!loadedChunksBuffer.TryGetValue(pos, out Chunk c)) return null;
+            return c;
+        }
+
         public List<Chunk> CloneList()
         {
             lock (loadedChunks)
@@ -161,7 +159,7 @@ namespace Voxel_engine.World
         private void SwapBuffers()
         {
             loadedChunks.Clear();
-            foreach (var chunk in loadedChunksBuffer) loadedChunks.Add(chunk);
+            loadedChunks.AddRange(loadedChunksBuffer.Values);
         }
         public void UpdatePosition(vec3 pos)
         {
@@ -182,6 +180,7 @@ namespace Voxel_engine.World
         {
             World world = (World)obj;
             if (world == null) Console.WriteLine("BROKEN");
+
             while (!world.terminate)
             {
 
@@ -191,12 +190,18 @@ namespace Voxel_engine.World
                     x = world.position.GetChunkX();
                     y = world.position.GetChunkY();
                 }
-                world.LoadAndUnloadChunks(x, y);
-                world.UpdateChunkFaces();
-                lock (world.loadedChunks) lock (world.loadedChunksBuffer)
+                bool changed = world.LoadAndUnloadChunks(x, y);
+
+                if (changed)
                 {
+                    world.UpdateChunkFaces();
+
+                    lock (world.loadedChunks) lock (world.loadedChunksBuffer)
+                    {
                         world.SwapBuffers();
+                    }
                 }
+                
                 Thread.Sleep(1000 / 20);
             }
 

@@ -13,12 +13,15 @@ namespace Voxel_engine.World
         private const byte BACK = 1, LEFT = 2, FRONT = 4, RIGHT = 8, BOTTOM = 16, TOP = 32;
         public byte[,,] blockType;
         public byte[,,] exposedFaces;
-        public int x, y;
+        public int x { get; private set; }
+        public int y { get; private set; }
         public int bufferID = -1;
         public int blockTypePoolId, exposedFacesPoolId;
         public bool updatedMesh = false, bufferedMesh = false;
         public byte[] data;
         public int dataLength = 0;
+
+        private Chunk[] neighbours = new Chunk[4] { null, null, null, null };
 
         public Chunk(int x, int y, byte[,,] blockType, int poolId)
         {
@@ -35,6 +38,9 @@ namespace Voxel_engine.World
             ChunkArrayPool.Return3DArray(blockTypePoolId);
             ChunkArrayPool.Return3DArray(exposedFacesPoolId);
             ArrayPool<byte>.Shared.Return(data, true);
+            blockType = null;
+            exposedFaces = null;
+            data = null;
         }
         public void SetBufferId(int id)
         {
@@ -46,8 +52,13 @@ namespace Voxel_engine.World
             data = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
             dataLength = length;
         }
-        public void UpdateExposedFaces(Chunk right, Chunk left, Chunk down, Chunk up)
+        public void UpdateExposedFaces()
         {
+            Chunk right = neighbours[0];
+            Chunk left = neighbours[1];
+            Chunk down = neighbours[2];
+            Chunk up = neighbours[3];
+
             int index = 0;
             for (int x = 0; x < 16; x++)
             {
@@ -87,6 +98,40 @@ namespace Voxel_engine.World
         {
             updatedMesh = false;
             bufferedMesh = false;
+        }
+        public void SetNeighboursNotUpdated()
+        {
+            foreach (Chunk c in neighbours) c?.SetNotUpdated();
+        }
+        public void RegisterNeighbour(Chunk c)
+        {
+            for(int i = 0; i < World.directions.Count; i++)
+            {
+                (int dx, int dy) = World.directions[i];
+                if (dx + x == c.x && dy + y == c.y) neighbours[i] = c;
+            }
+        }
+        public void RemoveNeighbour(Chunk c)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if(neighbours[i] == c)
+                {
+                    neighbours[i] = null;
+                    return;
+                }
+            }
+        }
+        public void UnloadChunk()
+        {
+            SetNeighboursNotUpdated();
+            RemoveAllNeighbours();
+            FreeArrays();
+        }
+        public void RemoveAllNeighbours()
+        {
+            foreach (Chunk c in neighbours) c?.RemoveNeighbour(this);
+            for (int i = 0; i < 4; i++) neighbours[i] = null;
         }
         public void SetBlock(int x, int y, int z, byte id)
         {
