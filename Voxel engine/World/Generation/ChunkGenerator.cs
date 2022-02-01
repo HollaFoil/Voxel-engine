@@ -20,17 +20,22 @@ namespace Voxel_engine.World.Generation
             byte[,,] blockTypes = ChunkArrayPool.arrayPool[poolId];
             for (int x = 0; x < 16; x++)
             {
-                for (int y = 0; y < 256; y++)
+                for (int y = 255; y >= 0; y--)
                 {
                     for (int z = 0; z < 16; z++)
                     {
                         //float val = Perlin3D.Noise(x + chunkx*16, y, z + chunky * 16, 4, ref min, ref max);
                         //if (val > 0.01f) Console.WriteLine("Biggah");
                         //int height = (int)Math.Ceiling((1.0f + data[x * 16 + z]) / 2 * 255);
-                        var factor = 0.0;
-                        if (y < 80) factor = -1;
-                        
-                        blockTypes[x, y, z] = ((easeInOutCubic(1-y / 255.0)*1.5) -  map[x * 16 * 256 + y * 16 + z] > 0.5 ? (byte)rand.Next(1,7) : (byte)0);
+
+                        bool solid = (easeInOutCubic(1 - y / 255.0) * 1.5) - map[x * 16 * 256 + y * 16 + z] > 0.5;
+                        byte blockID;
+                        if (!solid) blockID = 0;
+                        else if (y == 255 || blockTypes[x, y + 1, z] == 0) blockID = 4;
+                        else if (blockTypes[x, y + 1, z] == 6) blockID = 6;
+                        else if (blockTypes[x, y + 4, z] == 4) blockID = 6;
+                        else blockID = 2;
+                        blockTypes[x, y, z] = blockID;
                     }
                 }
                 

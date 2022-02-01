@@ -402,6 +402,7 @@ namespace Voxel_engine.World.Generation
         {
             var data = ArrayPool<double>.Shared.Rent(16 * 16 * 256);
             var freq = 0.01;
+            var pers = 0.5;
             var amp = 0.8;
             Noise3D noise = new Noise3D(0);
             for (var octave = 0; octave < octaves; octave++)
@@ -420,7 +421,7 @@ namespace Voxel_engine.World.Generation
                     }
                 });
                 freq *= 2;
-                amp *= 0.5;
+                amp *= pers;
             }
             for (int i = 0; i < 16*256*16; i++)
             {
