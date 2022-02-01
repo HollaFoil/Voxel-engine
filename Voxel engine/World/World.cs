@@ -172,24 +172,24 @@ namespace Voxel_engine.World
             return (distx*distx + disty*disty) < renderDistance*renderDistance;
         }
 
-        public byte? GetBlock(int x, int y, int z)
+        public byte? GetBlockType(int x, int y, int z)
         {
             lock (loadedChunksBuffer)
             {
-                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
-                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
-                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return null;
+                Chunk chunk = GetChunkFromBlockCoords(x, y, z);
+                if (chunk == null) return null;
                 return chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)];
             }
         }
-        public void SetBlock(int x, int y, int z, byte block)
+        public void SetBlockType(int x, int y, int z, byte block)
         {
             lock (loadedChunksBuffer)
             {
-                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
-                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
-                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return;
+                Chunk chunk = GetChunkFromBlockCoords(x, y, z);
+                if (chunk == null) return;
                 chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)] = block;
+                chunk.SetNotUpdated();
+                chunk.SetNeighboursNotUpdated();
             }
         }
         public Chunk GetChunkFromBlockCoords(int x, int y, int z)
@@ -198,8 +198,7 @@ namespace Voxel_engine.World
             {
                 int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
                 int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
-                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return null;
-                return chunk;
+                return GetChunk(chunkx, chunky);
             }
         }
         private int mod(int x, int m)

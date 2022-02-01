@@ -101,7 +101,7 @@ namespace Voxel_engine
                 Console.WriteLine($"Block {blockx} {blocky} {blockz} currPos {currPos}");
 
 
-                byte? block = world.GetBlock(blockx, blocky, blockz);
+                byte? block = world.GetBlockType(blockx, blocky, blockz);
 
                 if (block != null && block != 0) return new Tuple<int, int, int>(blockx, blocky, blockz);
             }
