@@ -10,9 +10,10 @@ namespace Voxel_engine
         public vec3 position = new vec3(0f, 150f, -3f);
         public vec2 yawpitch = new vec2(-90f, 0f);
         public float speed = 0.05f;
-        public Camera()
+        private World.World world;
+        public Camera(World.World w)
         {
-            
+            world = w;
         }
         public void UpdateYawPitch(vec2 change)
         {
@@ -75,7 +76,7 @@ namespace Voxel_engine
                 );
         }
 
-        public Tuple<int, int, int> GetFacingBlock(List<Chunk> chunks, float maxDist) {
+        public Tuple<int, int, int> GetFacingBlock(float maxDist) {
             vec3 direction = GetDirection();
             vec3 magnitudes = GetMagnitudes(direction);
             if (direction.x == 0.0f) direction.x = 1e-6f;
@@ -99,20 +100,10 @@ namespace Voxel_engine
 
                 Console.WriteLine($"Block {blockx} {blocky} {blockz} currPos {currPos}");
 
-                int chunkx = (blockx >= 0 ? blockx / 16 : ((blockx - 15) / 16));
-                int chunky = (blockz >= 0 ? blockz / 16 : ((blockz - 15) / 16));
 
-                Chunk chunk = chunks.Find(c => c.x == chunkx && c.y == chunky);
+                byte? block = world.GetBlock(blockx, blocky, blockz);
 
-                if (chunk != null)
-                {
-                    var type = chunk.blockType[
-                        blockx - chunkx * 16,
-                        Math.Min(blocky, 255),
-                        blockz - chunky * 16
-                    ];
-                    if (type != 0) return new Tuple<int, int, int>(blockx, blocky, blockz);
-                }
+                if (block != null && block != 0) return new Tuple<int, int, int>(blockx, blocky, blockz);
             }
 
             return null;

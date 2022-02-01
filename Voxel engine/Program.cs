@@ -35,8 +35,8 @@ class Program
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
 
-        Camera camera = new Camera();
-        InputHandler inputHandler = new InputHandler(window, camera);
+        Camera camera = new Camera(world);
+        InputHandler inputHandler = new InputHandler(window, camera, world);
 
         int viewLoc = glGetUniformLocation(renderer.GetProgram(), "view");
 

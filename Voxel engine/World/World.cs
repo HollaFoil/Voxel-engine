@@ -10,7 +10,7 @@ using Voxel_engine.World.Generation;
 
 namespace Voxel_engine.World
 {
-    internal class World
+    partial class World
     {
         public List<Chunk> loadedChunks = new List<Chunk>();
         private List<Tuple<int, int>> toRemove = new List<Tuple<int, int>>();
@@ -97,19 +97,16 @@ namespace Voxel_engine.World
             }
         }
 
-        public bool LoadAndUnloadChunks(int centerx, int centery)
+        public void LoadAndUnloadChunks(int centerx, int centery)
         {
-            bool chunksModified = false;
             toRemove.Clear();
             foreach((Tuple<int, int> key, Chunk c) in loadedChunksBuffer)
             {
-                if(!IsWithinDistance(centerx, centery, c.x, c.y))
-                {
-                    c.UnloadChunk();
-                    toRemove.Add(key);
-                    chunksModified = true;
-                }
+                if (IsWithinDistance(centerx, centery, c.x, c.y)) continue;
+                lock (c) c.UnloadChunk();
+                toRemove.Add(key);
             }
+
             foreach (var key in toRemove) loadedChunksBuffer.Remove(key);
             lock (chunkUpdatePattern)
             {
@@ -118,25 +115,24 @@ namespace Voxel_engine.World
                 {
                     Tuple<int, int> pos = new Tuple<int, int>(cdx + centerx, cdy + centery);
                     if (loadedChunksBuffer.ContainsKey(pos)) continue;
+
                     Chunk newChunk = ChunkGenerator.GenerateChunk(pos.Item1, pos.Item2);
+                    newChunk.SetNotUpdated();
                     loadedChunksBuffer.Add(pos, newChunk);
 
-                    newChunk.SetNotUpdated();
+                    
                     foreach((int dx, int dy) in directions)
                     {
                         Chunk neighbour = GetChunk(dx + pos.Item1, dy + pos.Item2);
-                        if (neighbour != null)
-                        {
-                            neighbour.RegisterNeighbour(newChunk);
-                            newChunk.RegisterNeighbour(neighbour);
-                            neighbour.SetNotUpdated();
-                        }
+                        if (neighbour == null) continue;
+                        neighbour.RegisterNeighbour(newChunk);
+                        newChunk.RegisterNeighbour(neighbour);
+                        lock (neighbour) neighbour.SetNotUpdated();
+
                     }
-                    chunksModified = true;
                     if (++loadedChunks == MaxNewChunksPerTick) break;
                 }
             }
-            return chunksModified;
         }
 
         public Chunk GetChunk(int x, int y)
@@ -176,7 +172,41 @@ namespace Voxel_engine.World
             return (distx*distx + disty*disty) < renderDistance*renderDistance;
         }
 
-        private static void RunThread(object? obj)
+        public byte? GetBlock(int x, int y, int z)
+        {
+            lock (loadedChunksBuffer)
+            {
+                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
+                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
+                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return null;
+                return chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)];
+            }
+        }
+        public void SetBlock(int x, int y, int z, byte block)
+        {
+            lock (loadedChunksBuffer)
+            {
+                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
+                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
+                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return;
+                chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)] = block;
+            }
+        }
+        public Chunk GetChunkFromBlockCoords(int x, int y, int z)
+        {
+            lock (loadedChunksBuffer)
+            {
+                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
+                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
+                if (!loadedChunksBuffer.TryGetValue(new Tuple<int, int>(chunkx, chunky), out Chunk chunk)) return null;
+                return chunk;
+            }
+        }
+        private int mod(int x, int m)
+        {
+            return (x % m + m) % m;
+        }
+        public static void RunThread(object? obj)
         {
             World world = (World)obj;
             if (world == null) Console.WriteLine("BROKEN");
@@ -190,18 +220,12 @@ namespace Voxel_engine.World
                     x = world.position.GetChunkX();
                     y = world.position.GetChunkY();
                 }
-                bool changed = world.LoadAndUnloadChunks(x, y);
-
-                if (changed)
+                world.LoadAndUnloadChunks(x, y);
+                world.UpdateChunkFaces();
+                lock (world.loadedChunks) lock (world.loadedChunksBuffer)
                 {
-                    world.UpdateChunkFaces();
-
-                    lock (world.loadedChunks) lock (world.loadedChunksBuffer)
-                    {
-                        world.SwapBuffers();
-                    }
+                    world.SwapBuffers();
                 }
-                
                 Thread.Sleep(1000 / 20);
             }
 

@@ -8,7 +8,7 @@ namespace Voxel_engine
     internal class InputHandler
     {
         Window window;
-        int keyCount = 6;
+        int keyCount = 7;
         float sensitivity = 0.05f;
         vec2 facingChange = new vec2(0,0);
         Dictionary<Keys, int> Keybinds = new Dictionary<Keys, int>();
@@ -17,13 +17,15 @@ namespace Voxel_engine
         MouseCallback mouseCallback;
         MouseCallback scrollCallback;
         Camera camera;
+        World.World world;
         float speed = 0.05f;
         int width, height, windowx, windowy;
-        public InputHandler(Window window, Camera camera)
+        public InputHandler(Window window, Camera camera, World.World world)
         {
             keyCallback = KeyCallback;
             mouseCallback = MouseCallback;
             scrollCallback = ScrollCallback;
+            this.world = world;
             this.camera = camera;
             InitKeybinds();
             foreach (var Key in possibleKeys) ActionHeldState.Add(Keybinds[Key], false);
@@ -37,31 +39,26 @@ namespace Voxel_engine
         }
         private void KeyCallback(Window window, Keys key, int scancode, InputState state, ModifierKeys modifiers) {
 
-            if (key == Keys.Q && state == InputState.Press)
-            {
-                Console.WriteLine("pressed Q");
-                Tuple<int, int, int> block = camera.GetFacingBlock(Program.chunkList, 5.0f);
-                if (block != null)
-                {
-                    (int blockx, int blocky, int blockz) = block;
-
-                    int chunkx = (blockx >= 0 ? blockx / 16 : ((blockx - 15) / 16));
-                    int chunky = (blockz >= 0 ? blockz / 16 : ((blockz - 15) / 16));
-                    Chunk c = Program.chunkList.Find(c => c.x == chunkx && c.y == chunky);
-                    c.blockType[blockx - chunkx * 16,
-                        Math.Min(blocky, 255),
-                        blockz - chunky * 16] = 0;
-
-                    c.SetNotUpdated();
-
-                    Console.WriteLine($"Removed {block}");
-                }
-            }
+            if (key == Keys.Q && state == InputState.Press) BreakBlock();
 
             if (window == null) return;
             if (state == InputState.Repeat || !Keybinds.ContainsKey(key)) return;
             else if (state == InputState.Press) ActionHeldState[Keybinds[key]] = true;
             else ActionHeldState[Keybinds[key]] = false;
+        }
+        private void BreakBlock()
+        {
+            //Console.WriteLine("pressed Q");
+            Tuple<int, int, int> block = camera.GetFacingBlock(5.0f);
+            if (block == null) return;
+
+            (int blockx, int blocky, int blockz) = block;
+            world.SetBlock(blockx, blocky, blockz, 0);
+            Chunk c = world.GetChunkFromBlockCoords(blockx, blocky, blockz);
+            c.SetNotUpdated();
+            c.SetNeighboursNotUpdated();
+
+            //Console.WriteLine($"Removed {block}");
         }
         private void ScrollCallback(Window window, double xoffset, double yoffset)
         {
@@ -106,7 +103,7 @@ namespace Voxel_engine
         }
 
         private static Keys[] possibleKeys = { Keys.W, Keys.S, Keys.A, Keys.D
-                , Keys.LeftShift, Keys.Space};
+                , Keys.LeftShift, Keys.Space, Keys.Q};
     }
     public enum Action:int
     {
@@ -115,7 +112,8 @@ namespace Voxel_engine
         Left = 3,
         Right = 4,
         Down = 5,
-        Up = 6
+        Up = 6,
+        Break = 7,
     }
 
     
