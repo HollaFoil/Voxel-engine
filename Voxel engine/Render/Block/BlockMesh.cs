@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Voxel_engine.World;
 
 namespace Voxel_engine
 {
@@ -57,195 +58,195 @@ namespace Voxel_engine
             int val = 0;
             switch (vertId) {
                 case 0:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 1:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 2:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 3:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 4:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 5:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 6:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 7:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 8:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 9:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 10:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 11:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 12:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 13:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 14:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 15:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 16:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 17:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 18:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 19:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y - 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 20:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 21:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 22:
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x - 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 case 23:
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z + chunky * 16);
                     side1 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     side2 = (block == null || block == 0) ? 0 : 1;
-                    block = world.GetBlock(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
+                    block = Block.GetType(x + 1 + chunkx * 16, y + 1, z - 1 + chunky * 16);
                     corner = (block == null || block == 0) ? 0 : 1;
                     return CalcAO(side1, side2, corner);
                 default:
