@@ -125,12 +125,12 @@ namespace Voxel_engine.World
         public void UnloadChunk()
         {
             SetNeighboursNotUpdated();
-            FreeArrays();
             RemoveAllNeighbours();
+            FreeArrays();
         }
         public void RemoveAllNeighbours()
         {
-            foreach (Chunk c in neighbours) RemoveNeighbour(c);
+            foreach (Chunk c in neighbours) c?.RemoveNeighbour(this);
             for (int i = 0; i < 4; i++) neighbours[i] = null;
         }
         public void SetBlock(int x, int y, int z, byte id)
