@@ -34,7 +34,6 @@ class Program
         World world = new World(7, 5);
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
-
         Camera camera = new Camera(world);
         InputHandler inputHandler = new InputHandler(window, camera, world);
 
@@ -76,6 +75,7 @@ class Program
             }
             renderer.Flush();
             Glfw.SwapBuffers(window);
+            Console.WriteLine(camera.position);
             PollErrors();
         }
         world.TerminateThread();

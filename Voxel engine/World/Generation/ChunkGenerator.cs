@@ -40,8 +40,6 @@ namespace Voxel_engine.World.Generation
                 }
                 
             }
-            Console.WriteLine(min);
-            Console.WriteLine(max);
             //ArrayPool<float>.Shared.Return(data, true);
             ArrayPool<double>.Shared.Return(map, true);
             return new Chunk(chunkx, chunky, blockTypes, poolId);

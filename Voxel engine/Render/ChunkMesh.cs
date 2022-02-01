@@ -9,6 +9,8 @@ namespace Voxel_engine
 {
     internal static class ChunkMesh
     {
+        
+
         public static byte[] GenerateMesh(byte[,,] block, byte[,,] exposedFaces, int chunkx, int chunky, out int length)
         {
 

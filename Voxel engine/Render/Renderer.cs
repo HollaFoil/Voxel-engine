@@ -164,10 +164,12 @@ namespace Voxel_engine.Render
             glEnableVertexAttribArray(3);
             glVertexAttribIPointer(4, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(4 * sizeof(byte)));
             glEnableVertexAttribArray(4);
-            glVertexAttribIPointer(5, 1, GL_INT, sizeOfVertex, (void*)(5 * sizeof(byte)));
+            glVertexAttribIPointer(5, 1, GL_UNSIGNED_BYTE, sizeOfVertex, (void*)(5 * sizeof(byte)));
             glEnableVertexAttribArray(5);
-            glVertexAttribIPointer(6, 1, GL_INT, sizeOfVertex, (void*)(5 * sizeof(byte) + sizeof(int)));
+            glVertexAttribIPointer(6, 1, GL_INT, sizeOfVertex, (void*)(6 * sizeof(byte)));
             glEnableVertexAttribArray(6);
+            glVertexAttribIPointer(7, 1, GL_INT, sizeOfVertex, (void*)(6 * sizeof(byte) + sizeof(int)));
+            glEnableVertexAttribArray(7);
             //Console.WriteLine(5 * sizeof(float) + sizeof(byte));
             /*glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float) + sizeof(byte), NULL);
             glEnableVertexAttribArray(0);
@@ -192,6 +194,6 @@ namespace Voxel_engine.Render
             glGenerateMipmap(GL_TEXTURE_2D);
         }
 
-        public const int sizeOfVertex = 2 * sizeof(int) + 5 * sizeof(byte);
+        public const int sizeOfVertex = 2 * sizeof(int) + 6 * sizeof(byte);
     }
 }

@@ -4,11 +4,13 @@ layout (location = 1) in int y;
 layout (location = 2) in int z;
 layout (location = 3) in int vertexID;
 layout (location = 4) in int texID;
-layout (location = 5) in int chunkx;
-layout (location = 6) in int chunky;
+layout (location = 5) in int AOin;
+layout (location = 6) in int chunkx;
+layout (location = 7) in int chunky;
 
 out vec2 tex;
 flat out int id;
+out float AO;
 uniform mat4 view;
 uniform mat4 projection;
 void main()
@@ -49,5 +51,6 @@ void main()
 	gl_Position = projection * view * position;
 	tex = vec2(vertices[vertexID*5+3], vertices[vertexID*5+4]);
 	id = texID;
+    AO = float(AOin);
 	//tex = vec2(1.0, 1.0);
 }

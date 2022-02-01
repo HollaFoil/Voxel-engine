@@ -36,7 +36,7 @@ namespace Voxel_engine.World
             this.renderDistance = renderDistance;
             this.MaxNewChunksPerTick = maxNewChunksPerTick;
             UpdateChunkLoadingPattern();
-
+            BlockMesh.world = this;
             thread.Start(this);
 
         }
@@ -174,6 +174,7 @@ namespace Voxel_engine.World
 
         public byte? GetBlock(int x, int y, int z)
         {
+            if (y > 255 || y < 0) return null;
             lock (loadedChunksBuffer)
             {
                 int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
