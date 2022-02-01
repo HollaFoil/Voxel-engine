@@ -398,11 +398,11 @@ namespace Voxel_engine.World.Generation
             }
             return value * NORM_4D;
         }
-        public static double[] GenerateChunkNoiseMap(int chunkx, int chunky, int octaves)
+        public static double[] GenerateChunkNoiseMap(int chunkx, int chunky, int octaves, ref double min, ref double max)
         {
             var data = ArrayPool<double>.Shared.Rent(16 * 16 * 256);
-            var freq = 0.05;
-            var amp = 0.1;
+            var freq = 0.01;
+            var amp = 0.8;
             Noise3D noise = new Noise3D(0);
             for (var octave = 0; octave < octaves; octave++)
             {
@@ -414,14 +414,20 @@ namespace Voxel_engine.World.Generation
                     {
                         for (int k = 0; k < 16; k++)
                         {
-                            data[i * 256 * 16 + j * 16 + k] = noise.Evaluate((i + chunkx * 16) * freq, j * freq, (k + chunky * 16) * freq);
+                            data[i * 256 * 16 + j * 16 + k] += noise.Evaluate((i + chunkx * 16) * freq, j * freq, (k + chunky * 16) * freq) * amp;
+                            
                         }
                     }
                 });
+                freq *= 2;
+                amp *= 0.5;
             }
             for (int i = 0; i < 16*256*16; i++)
             {
+                
                 data[i] = (data[i] + 1.0) / 2;
+                min = Math.Min(min, data[i]);
+                max = Math.Max(max, data[i]);
             }
             return data;
         }
