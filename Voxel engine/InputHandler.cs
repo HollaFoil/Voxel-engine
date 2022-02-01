@@ -48,17 +48,11 @@ namespace Voxel_engine
         }
         private void BreakBlock()
         {
-            //Console.WriteLine("pressed Q");
             Tuple<int, int, int> block = camera.GetFacingBlock(5.0f);
             if (block == null) return;
 
             (int blockx, int blocky, int blockz) = block;
-            world.SetBlock(blockx, blocky, blockz, 0);
-            Chunk c = world.GetChunkFromBlockCoords(blockx, blocky, blockz);
-            c.SetNotUpdated();
-            c.SetNeighboursNotUpdated();
-
-            //Console.WriteLine($"Removed {block}");
+            Block.SetType(blockx, blocky, blockz, 0);
         }
         private void ScrollCallback(Window window, double xoffset, double yoffset)
         {

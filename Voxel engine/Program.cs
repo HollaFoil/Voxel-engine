@@ -22,7 +22,7 @@ class Program
     static uint vao, vbo, ebo;
     static uint[] texIds;
     static Renderer renderer;
-    public static List<Chunk> chunkList;
+    public static World world;
     static unsafe void Main(string[] args)
     {
         SizeCallback resizeCallback = WindowSizeCallback;
@@ -31,7 +31,7 @@ class Program
         
 
         Noise2d.Reseed();
-        World world = new World(7, 5);
+        world = new World(7, 5);
         renderer = new Renderer(world.loadedChunks);
         rand = new Random();
         Camera camera = new Camera(world);
@@ -67,8 +67,6 @@ class Program
             world.UpdatePosition(camera.position);
             glUniformMatrix4fv(viewLoc, 1, false, (mat4.LookAt(camera.position, camera.position + camera.GetDirection(), new vec3(0, 1, 0))).ToArray());
             sw.Restart();
-            List<Chunk> chunks = world.CloneList();
-            chunkList = chunks;
             lock (world.loadedChunks)
             {
                 renderer.UpdateChunkBuffers(world.loadedChunks);
