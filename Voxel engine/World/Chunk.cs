@@ -48,9 +48,13 @@ namespace Voxel_engine.World
         }
         public void GenerateMesh()
         {
-            if (data != null) ArrayPool<byte>.Shared.Return(data, true);
-            data = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
-            dataLength = length;
+            var mesh = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
+            lock (this)
+            {
+                if (data != null) ArrayPool<byte>.Shared.Return(data, true);
+                data = mesh;
+                dataLength = length;
+            }
         }
         public void UpdateExposedFaces()
         {

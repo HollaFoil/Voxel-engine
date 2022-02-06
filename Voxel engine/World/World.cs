@@ -55,12 +55,9 @@ namespace Voxel_engine.World
             Parallel.ForEach(loadedChunksBuffer.Values, (chunk) =>
             {
                 if (chunk.updatedMesh) return;
-                lock (chunk)
-                {
-                    chunk.UpdateExposedFaces();
-                    chunk.GenerateMesh();
-                    chunk.updatedMesh = true;
-                }
+                chunk.UpdateExposedFaces();
+                chunk.GenerateMesh();
+                chunk.updatedMesh = true;
             });
         }
 
@@ -175,12 +172,9 @@ namespace Voxel_engine.World
         public byte? GetBlockType(int x, int y, int z)
         {
             if (y > 255 || y < 0) return null;
-            lock (loadedChunksBuffer)
-            {
-                Chunk chunk = GetChunkFromBlockCoords(x, y, z);
-                if (chunk == null) return null;
-                return chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)];
-            }
+            Chunk chunk = GetChunkFromBlockCoords(x, y, z);
+            if (chunk == null) return null;
+            return chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)];
         }
         public void SetBlockType(int x, int y, int z, byte block)
         {
@@ -195,12 +189,9 @@ namespace Voxel_engine.World
         }
         public Chunk GetChunkFromBlockCoords(int x, int y, int z)
         {
-            lock (loadedChunksBuffer)
-            {
-                int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
-                int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
-                return GetChunk(chunkx, chunky);
-            }
+            int chunkx = (x >= 0 ? x / 16 : ((x - 15) / 16));
+            int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
+            return GetChunk(chunkx, chunky);
         }
         private int mod(int x, int m)
         {

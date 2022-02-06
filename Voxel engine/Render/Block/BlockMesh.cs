@@ -53,6 +53,7 @@ namespace Voxel_engine
         }
         private static byte GetAOOfVertex (int x, int y, int z, int chunkx, int chunky, int vertId)
         {
+
             byte? block;
             int side1, side2, corner;
             int val = 0;

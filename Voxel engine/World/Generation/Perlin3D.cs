@@ -380,6 +380,7 @@ namespace Voxel_engine.World.Generation
                 var dz = dz0 + c.dz;
                 var dw = dw0 + c.dw;
                 var attn = 2 - dx * dx - dy * dy - dz * dz - dw * dw;
+                
                 if (attn > 0)
                 {
                     var px = xsb + c.xsb;
