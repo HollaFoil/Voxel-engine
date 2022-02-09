@@ -11,6 +11,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using System.Reflection;
 using System.IO;
 
+
 namespace Voxel_engine
 {
 
@@ -69,7 +70,10 @@ namespace Voxel_engine
             {4, "grass_block_top"},
             {5, "oak_planks"},
             {6, "sand"},
-            {7, "stone" }
+            {7, "stone" },
+            {8, "oak_log_side" },
+            {9, "oak_log_top" },
+            {10, "oak_leaves" }
         };
     }
 
@@ -82,6 +86,9 @@ namespace Voxel_engine
         GrassTop = 4,
         OakPlanks = 5,
         Sand = 6,
-        Stone = 7
+        Stone = 7,
+        OakLogSide = 8,
+        OakLogTop = 9,
+        OakLeaves = 10,
     }
 }

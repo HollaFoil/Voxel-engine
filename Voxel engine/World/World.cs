@@ -13,8 +13,8 @@ namespace Voxel_engine.World
     partial class World
     {
         public List<Chunk> loadedChunks = new List<Chunk>();
-        private List<Tuple<int, int>> toRemove = new List<Tuple<int, int>>();
-        private Dictionary<Tuple<int, int>, Chunk> loadedChunksBuffer = new Dictionary<Tuple<int, int>, Chunk>();
+        private List<(int, int)> toRemove = new List<(int, int)>();
+        private Dictionary<(int,int), Chunk> loadedChunksBuffer = new Dictionary<(int, int), Chunk>();
         public static IReadOnlyList<Tuple<int, int>> directions = new ReadOnlyCollection<Tuple<int, int>>(new List<Tuple<int, int>>
         {
             new Tuple<int, int>(-1, 0),
@@ -57,7 +57,7 @@ namespace Voxel_engine.World
                 if (chunk.updatedMesh) return;
                 chunk.UpdateExposedFaces();
                 chunk.GenerateMesh();
-                chunk.updatedMesh = true;
+                
             });
         }
 
@@ -97,11 +97,11 @@ namespace Voxel_engine.World
         public void LoadAndUnloadChunks(int centerx, int centery)
         {
             toRemove.Clear();
-            foreach((Tuple<int, int> key, Chunk c) in loadedChunksBuffer)
+            foreach(var c in loadedChunksBuffer)
             {
-                if (IsWithinDistance(centerx, centery, c.x, c.y)) continue;
-                lock (c) c.UnloadChunk();
-                toRemove.Add(key);
+                if (IsWithinDistance(centerx, centery, c.Value.x, c.Value.y)) continue;
+                lock (c.Value) c.Value.UnloadChunk();
+                toRemove.Add(c.Key);
             }
 
             foreach (var key in toRemove) loadedChunksBuffer.Remove(key);
@@ -110,7 +110,7 @@ namespace Voxel_engine.World
                 int loadedChunks = 0;
                 foreach ((int cdx, int cdy) in chunkUpdatePattern)
                 {
-                    Tuple<int, int> pos = new Tuple<int, int>(cdx + centerx, cdy + centery);
+                    (int, int) pos = (cdx + centerx, cdy + centery);
                     if (loadedChunksBuffer.ContainsKey(pos)) continue;
 
                     Chunk newChunk = ChunkGenerator.GenerateChunk(pos.Item1, pos.Item2);
@@ -134,8 +134,7 @@ namespace Voxel_engine.World
 
         public Chunk GetChunk(int x, int y)
         {
-            Tuple<int, int> pos = new Tuple<int, int>(x, y);
-            if (!loadedChunksBuffer.TryGetValue(pos, out Chunk c)) return null;
+            if (!loadedChunksBuffer.TryGetValue((x, y), out Chunk c)) return null;
             return c;
         }
 
@@ -144,7 +143,7 @@ namespace Voxel_engine.World
             lock (loadedChunks)
             {
                 List<Chunk> clone = new List<Chunk>(loadedChunks.Count);
-                foreach (var chunk in loadedChunks) clone.Add(chunk);
+                clone.AddRange(loadedChunks);
                 return clone;
             }
         }
@@ -174,7 +173,7 @@ namespace Voxel_engine.World
             if (y > 255 || y < 0) return null;
             Chunk chunk = GetChunkFromBlockCoords(x, y, z);
             if (chunk == null) return null;
-            return chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)];
+            return chunk.blockType[mod16Fast(x), y, mod16Fast(z)];
         }
         public void SetBlockType(int x, int y, int z, byte block)
         {
@@ -182,7 +181,7 @@ namespace Voxel_engine.World
             {
                 Chunk chunk = GetChunkFromBlockCoords(x, y, z);
                 if (chunk == null) return;
-                chunk.blockType[mod(x, 16), mod(y, 256), mod(z, 16)] = block;
+                chunk.blockType[mod16Fast(x), y, mod16Fast(z)] = block;
                 chunk.SetNotUpdated();
                 chunk.SetNeighboursNotUpdated();
             }
@@ -193,9 +192,9 @@ namespace Voxel_engine.World
             int chunky = (z >= 0 ? z / 16 : ((z - 15) / 16));
             return GetChunk(chunkx, chunky);
         }
-        private int mod(int x, int m)
+        private int mod16Fast(int x)
         {
-            return (x % m + m) % m;
+            return x & ((1 << 4) - 1);
         }
         public static void RunThread(object? obj)
         {

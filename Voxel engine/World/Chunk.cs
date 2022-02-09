@@ -48,12 +48,12 @@ namespace Voxel_engine.World
         }
         public void GenerateMesh()
         {
-            var mesh = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
-            lock (this)
-            {
+            var temp = ChunkMesh.GenerateMesh(blockType, exposedFaces, x, y, out int length);
+            lock (this) {
                 if (data != null) ArrayPool<byte>.Shared.Return(data, true);
-                data = mesh;
+                data = temp;
                 dataLength = length;
+                updatedMesh = true;
             }
         }
         public void UpdateExposedFaces()
@@ -76,23 +76,23 @@ namespace Voxel_engine.World
                         }
                         byte directions = 0;
                         if (x == 15 && left == null) directions += BlockMesh.LEFT;
-                        else if (x == 15 && left.blockType[0, y, z] == 0) directions += BlockMesh.LEFT;
-                        else if (x < 15 && blockType[x + 1, y, z] == 0) directions += BlockMesh.LEFT;
+                        else if (x == 15 && (left.blockType[0, y, z] == 0 || left.blockType[0, y, z] == 8)) directions += BlockMesh.LEFT;
+                        else if (x < 15 && (blockType[x + 1, y, z] == 0 || blockType[x + 1, y, z] == 8)) directions += BlockMesh.LEFT;
 
                         if (z == 15 && down == null) directions += BlockMesh.BACK;
-                        else if (z == 15 && down.blockType[x, y, 0] == 0) directions += BlockMesh.BACK;
-                        else if (z < 15 && blockType[x, y, z + 1] == 0) directions += BlockMesh.BACK;
+                        else if (z == 15 && (down.blockType[x, y, 0] == 0 || down.blockType[x, y, 0] == 8)) directions += BlockMesh.BACK;
+                        else if (z < 15 && (blockType[x, y, z + 1] == 0 || blockType[x, y, z + 1] == 8)) directions += BlockMesh.BACK;
 
                         if (x == 0 && right == null) directions += BlockMesh.RIGHT;
-                        else if (x == 0 && right.blockType[15, y, z] == 0) directions += BlockMesh.RIGHT;
-                        else if (x != 0 && blockType[x - 1, y, z] == 0) directions += BlockMesh.RIGHT;
+                        else if (x == 0 && (right.blockType[15, y, z] == 0 || right.blockType[15, y, z] == 8)) directions += BlockMesh.RIGHT;
+                        else if (x != 0 && (blockType[x - 1, y, z] == 0 || blockType[x - 1, y, z] == 8)) directions += BlockMesh.RIGHT;
 
                         if (z == 0 && up == null) directions += BlockMesh.FRONT;
-                        else if (z == 0 && up.blockType[x, y, 15] == 0) directions += BlockMesh.FRONT;
-                        else if (z != 0 && blockType[x, y, z - 1] == 0) directions += BlockMesh.FRONT;
+                        else if (z == 0 && (up.blockType[x, y, 15] == 0 || up.blockType[x, y, 15] == 8)) directions += BlockMesh.FRONT;
+                        else if (z != 0 && (blockType[x, y, z - 1] == 0 || blockType[x, y, z - 1] == 8)) directions += BlockMesh.FRONT;
 
-                        if (y == 0 || blockType[x, y - 1, z] == 0) directions += BlockMesh.BOTTOM;
-                        if (y == 255 || blockType[x, y + 1, z] == 0) directions += BlockMesh.TOP;
+                        if (y == 0 || (blockType[x, y - 1, z] == 0 || blockType[x, y - 1, z] == 8)) directions += BlockMesh.BOTTOM;
+                        if (y == 255 || (blockType[x, y + 1, z] == 0 || blockType[x, y + 1, z] == 8)) directions += BlockMesh.TOP;
                         exposedFaces[x, y, z] = directions;
                     }
                 }
@@ -100,8 +100,11 @@ namespace Voxel_engine.World
         }
         public void SetNotUpdated()
         {
-            updatedMesh = false;
-            bufferedMesh = false;
+            lock (this)
+            {
+                updatedMesh = false;
+                bufferedMesh = false;
+            }
         }
         public void SetNeighboursNotUpdated()
         {

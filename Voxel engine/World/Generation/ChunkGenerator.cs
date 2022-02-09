@@ -10,7 +10,7 @@ namespace Voxel_engine.World.Generation
     internal static class ChunkGenerator
     {
         static Random rand = new Random();
-        static int octaves = 3;
+        static int octaves = 1;
         public static Chunk GenerateChunk(int chunkx, int chunky)
         {
             //var data = Noise2d.GenerateChunkNoiseMap(chunkx, chunky, octaves);
@@ -34,7 +34,7 @@ namespace Voxel_engine.World.Generation
                         else if (y == 255 || blockTypes[x, y + 1, z] == 0) blockID = 4;
                         else if (blockTypes[x, y + 1, z] == 6) blockID = 6;
                         else if (blockTypes[x, y + 4, z] == 4) blockID = 6;
-                        else blockID = 2;
+                        else blockID = 8;
                         blockTypes[x, y, z] = blockID;
                     }
                 }
