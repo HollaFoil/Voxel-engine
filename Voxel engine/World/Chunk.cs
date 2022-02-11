@@ -37,7 +37,7 @@ namespace Voxel_engine.World
         {
             ChunkArrayPool.Return3DArray(blockTypePoolId);
             ChunkArrayPool.Return3DArray(exposedFacesPoolId);
-            ArrayPool<byte>.Shared.Return(data, true);
+            lock (this) ArrayPool<byte>.Shared.Return(data, true);
             blockType = null;
             exposedFaces = null;
             data = null;
@@ -54,6 +54,7 @@ namespace Voxel_engine.World
                 data = temp;
                 dataLength = length;
                 updatedMesh = true;
+                bufferedMesh = false;
             }
         }
         public void UpdateExposedFaces()
@@ -103,7 +104,6 @@ namespace Voxel_engine.World
             lock (this)
             {
                 updatedMesh = false;
-                bufferedMesh = false;
             }
         }
         public void SetNeighboursNotUpdated()

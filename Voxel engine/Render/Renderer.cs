@@ -59,14 +59,14 @@ namespace Voxel_engine.Render
             for (int i = 0; i < bufferAvailability.Count; i++) if (bufferAvailability[i]) freeBuffers++;
             for (int i = 0; i < chunks.Count; i++)
             {
-                lock (chunks[i])
-                {
+                //lock (chunks[i])
+                //{
                     if (chunks[i].bufferID != -1 || !chunks[i].updatedMesh) continue;
                     if (freeBuffers == 0)
                     {
                         CreateBuffer(out uint vao, out uint vbo);
                         chunks[i].bufferID = (int)vao;
-                        BufferChunk(chunks[i], (uint)chunks[i].bufferID);
+                        lock (chunks[i]) BufferChunk(chunks[i], (uint)chunks[i].bufferID);
                         continue;
                     }
                     for (int j = index; j < bufferAvailability.Count; j++)
@@ -76,10 +76,10 @@ namespace Voxel_engine.Render
                         bufferAvailability[j] = false;
                         chunks[i].bufferID = j + 1;
                         freeBuffers--;
-                        BufferChunk(chunks[i], (uint)chunks[i].bufferID);
+                        lock (chunks[i]) BufferChunk(chunks[i], (uint)chunks[i].bufferID);
                         break;
                     }
-                }
+                //d}
             }
             foreach (var c in chunks)
             {
@@ -120,7 +120,7 @@ namespace Voxel_engine.Render
         }
         private unsafe void BufferChunk(Chunk chunk, uint buffer)
         {
-            
+            Console.WriteLine("Buffering...");
             byte[] data = chunk.data;
             if (data == null || chunk.dataLength == 0 || chunk.bufferID == -1) return;
             glBindBuffer(GL_ARRAY_BUFFER, buffer);

@@ -73,7 +73,7 @@ class Program
             }
             renderer.Flush();
             Glfw.SwapBuffers(window);
-            Console.WriteLine(camera.position);
+            //Console.WriteLine(camera.position);
             PollErrors();
         }
         world.TerminateThread();

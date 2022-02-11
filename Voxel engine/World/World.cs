@@ -100,7 +100,7 @@ namespace Voxel_engine.World
             foreach(var c in loadedChunksBuffer)
             {
                 if (IsWithinDistance(centerx, centery, c.Value.x, c.Value.y)) continue;
-                lock (c.Value) c.Value.UnloadChunk();
+                c.Value.UnloadChunk();
                 toRemove.Add(c.Key);
             }
 
@@ -124,7 +124,7 @@ namespace Voxel_engine.World
                         if (neighbour == null) continue;
                         neighbour.RegisterNeighbour(newChunk);
                         newChunk.RegisterNeighbour(neighbour);
-                        lock (neighbour) neighbour.SetNotUpdated();
+                        neighbour.SetNotUpdated();
 
                     }
                     if (++loadedChunks == MaxNewChunksPerTick) break;
